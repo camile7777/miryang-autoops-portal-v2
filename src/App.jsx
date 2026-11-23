@@ -54,6 +54,7 @@ const categories = [
   { key: "transfer", ko: "이송", zh: "移送", en: "Transfer", icon: ArrowLeftRight },
   { key: "operation", ko: "운영 프로세스", zh: "运营流程", en: "Operations", icon: Settings },
   { key: "error", ko: "오류 대응", zh: "异常处理", en: "Error Handling", icon: AlertTriangle },
+  { key: "system", ko: "시스템관리", zh: "系统管理", en: "System", icon: Monitor },
   { key: "training", ko: "교육 자료", zh: "培训资料", en: "Training", icon: GraduationCap },
 ];
 
@@ -524,7 +525,586 @@ const sopItems = [
       { ko: "기록", zh: "记录", dko: "사유와 결과를 기록합니다.", dzh: "记录原因和结果。" },
     ],
   },
+  /* ---- added 2026-11-24 from PR Desk Smart SOP (sylogi2) ---- */
+  {
+    code: "SAP-01",
+    titleKo: "출고 납품 삭제",
+    titleZh: "出库交货删除",
+    category: "system",
+    centerKo: "공통",
+    centerZh: "通用",
+    revised: "2026.10.28",
+    scopeKo: "밀양 자동화센터 시스템 담당자",
+    scopeZh: "密阳自动化中心系统担当",
+    descKo: "기 출고된 SAP 오더 삭제",
+    descZh: "删除已出库的 SAP 订单",
+    cautionKo: "삭제 전 운반비 문서, 선적문서, CY출고취소 순서를 먼저 확인하세요.",
+    cautionZh: "删除前先确认运费单据、装运单据、CY出库取消的顺序。",
+    tags: ["SAP", "ZSDR0230", "납품삭제"],
+    steps: [
+      { ko: "ZSDR0230", zh: "ZSDR0230", dko: "SAP ZSDR0230 화면을 엽니다.", dzh: "打开 SAP ZSDR0230 画面。" },
+      { ko: "검색 조건값 넣기", zh: "输入查询条件", dko: "검색 조건값을 입력합니다.", dzh: "输入查询条件值。" },
+      { ko: "PO번호 기준 정렬하여 해당 PO찾기", zh: "按 PO 编号排序查找对应 PO", dko: "PO번호 기준으로 정렬하여 해당 PO를 찾습니다.", dzh: "按 PO 编号排序，找到对应的 PO。" },
+      { ko: "납품번호 복사", zh: "复制交货编号", dko: "납품번호를 복사합니다.", dzh: "复制交货编号。" },
+      { ko: "뒤로가기 납품번호 붙여넣기", zh: "返回并粘贴交货编号", dko: "뒤로가기 후 납품번호를 붙여넣습니다.", dzh: "返回后粘贴交货编号。" },
+      { ko: "운반비 문서 삭제", zh: "删除运费单据", dko: "[SAP] 운반비 문서 삭제 절차를 참고하여 삭제합니다.", dzh: "参照 [SAP] 运费单据删除流程进行删除。" },
+      { ko: "선적문서 삭제", zh: "删除装运单据", dko: "[SAP] 선적 문서 삭제 절차를 참고하여 삭제합니다.", dzh: "参照 [SAP] 装运单据删除流程进行删除。" },
+      { ko: "CY출고취소", zh: "CY出库取消", dko: "[SAP] CY출고 취소 절차를 참고하여 취소합니다.", dzh: "参照 [SAP] CY出库取消流程进行取消。" },
+      { ko: "ZSDR0230", zh: "ZSDR0230", dko: "ZSDR0230으로 돌아갑니다.", dzh: "回到 ZSDR0230。" },
+      { ko: "해당오더 재조회 후 납품번호 클릭", zh: "重新查询订单后点击交货编号", dko: "해당 오더를 재조회한 후 납품번호를 클릭합니다.", dzh: "重新查询该订单后点击交货编号。" },
+      { ko: "휴지통 클릭", zh: "点击回收站图标", dko: "휴지통 아이콘을 클릭합니다.", dzh: "点击回收站图标。" },
+      { ko: "완료", zh: "完成", dko: "삭제 완료를 확인합니다.", dzh: "确认删除完成。" },
+    ],
+  },
+  {
+    code: "SAP-02",
+    titleKo: "CY출고 취소",
+    titleZh: "CY出库取消",
+    category: "system",
+    centerKo: "공통",
+    centerZh: "通用",
+    revised: "2026.10.28",
+    scopeKo: "밀양 자동화센터 시스템 담당자",
+    scopeZh: "密阳自动化中心系统担当",
+    descKo: "SAP CY출고 취소 절차입니다.",
+    descZh: "SAP CY出库取消流程。",
+    cautionKo: "취소 후 SAP 재고차이를 반드시 확인하세요.",
+    cautionZh: "取消后务必确认 SAP 库存差异。",
+    tags: ["SAP", "ZSDR0250", "CY출고"],
+    steps: [
+      { ko: "ZSDR0250", zh: "ZSDR0250", dko: "SAP ZSDR0250 화면을 엽니다.", dzh: "打开 SAP ZSDR0250 画面。" },
+      { ko: "조건값 입력", zh: "输入条件值", dko: "1) 출하지점 : 1420 / 2) 납품문서 / 3) CY출고생성 체크", dzh: "1) 出货地点：1420 / 2) 交货单据 / 3) 勾选 CY出库生成" },
+      { ko: "선택 후 CY출고취소", zh: "选择后取消 CY出库", dko: "선택 후 CY출고취소를 진행합니다.", dzh: "选择后进行 CY出库取消。" },
+      { ko: "전기일 입력", zh: "输入过账日期", dko: "전기일을 입력합니다.", dzh: "输入过账日期。" },
+      { ko: "확인", zh: "确认", dko: "SAP재고차이 확인", dzh: "确认 SAP 库存差异" },
+    ],
+  },
+  {
+    code: "SAP-03",
+    titleKo: "선적 문서 삭제",
+    titleZh: "装运单据删除",
+    category: "system",
+    centerKo: "공통",
+    centerZh: "通用",
+    revised: "2026.10.28",
+    scopeKo: "밀양 자동화센터 시스템 담당자",
+    scopeZh: "密阳自动化中心系统担当",
+    descKo: "SAP 선적 문서 삭제 절차입니다.",
+    descZh: "SAP 装运单据删除流程。",
+    cautionKo: "별도 주의사항이 등록되지 않았습니다.",
+    cautionZh: "暂无登记的注意事项。",
+    tags: ["SAP", "ZSDR0230", "선적문서"],
+    steps: [
+      { ko: "ZSDR0230", zh: "ZSDR0230", dko: "SAP ZSDR0230 화면을 엽니다.", dzh: "打开 SAP ZSDR0230 画面。" },
+      { ko: "조건값 입력 검색", zh: "输入条件值检索", dko: "조건값을 입력하여 검색합니다.", dzh: "输入条件值进行检索。" },
+      { ko: "삭제 오더 체크 클릭", zh: "勾选要删除的订单", dko: "삭제할 오더를 체크합니다.", dzh: "勾选要删除的订单。" },
+      { ko: "선적 문서 변경 클릭", zh: "点击装运单据变更", dko: "선적 문서 변경을 클릭합니다.", dzh: "点击装运单据变更。" },
+      { ko: "휴지통 클릭", zh: "点击回收站图标", dko: "휴지통 아이콘을 클릭합니다.", dzh: "点击回收站图标。" },
+      { ko: "완료", zh: "完成", dko: "삭제 완료를 확인합니다.", dzh: "确认删除完成。" },
+    ],
+  },
+  {
+    code: "SAP-04",
+    titleKo: "운반비 문서 삭제",
+    titleZh: "运费单据删除",
+    category: "system",
+    centerKo: "미지정",
+    centerZh: "未指定",
+    revised: "2026.10.28",
+    scopeKo: "밀양 자동화센터 시스템 담당자",
+    scopeZh: "密阳自动化中心系统担当",
+    descKo: "SAP 운반비 문서 삭제 절차입니다.",
+    descZh: "SAP 运费单据删除流程。",
+    cautionKo: "별도 주의사항이 등록되지 않았습니다.",
+    cautionZh: "暂无登记的注意事项。",
+    tags: ["SAP", "ZSDR0230", "운반비"],
+    steps: [
+      { ko: "ZSDR0230", zh: "ZSDR0230", dko: "SAP ZSDR0230 화면을 엽니다.", dzh: "打开 SAP ZSDR0230 画面。" },
+      { ko: "조건값 입력 검색", zh: "输入条件值检索", dko: "필수입력 값 : 출하지점, 납품요청일", dzh: "必填项：出货地点、交货请求日" },
+      { ko: "삭제 오더 체크 클릭", zh: "勾选要删除的订单", dko: "삭제할 오더를 체크합니다.", dzh: "勾选要删除的订单。" },
+      { ko: "운반비 문서 변경 클릭", zh: "点击运费单据变更", dko: "운반비 문서 변경을 클릭합니다.", dzh: "点击运费单据变更。" },
+      { ko: "휴지통 클릭", zh: "点击回收站图标", dko: "휴지통 아이콘을 클릭합니다.", dzh: "点击回收站图标。" },
+      { ko: "완료", zh: "完成", dko: "삭제 완료를 확인합니다.", dzh: "确认删除完成。" },
+    ],
+  },
+  {
+    code: "RPK-01",
+    titleKo: "리패킹 오더 출고 케이스 (1)",
+    titleZh: "重新包装订单出库案例（1）",
+    category: "outbound",
+    centerKo: "공통",
+    centerZh: "通用",
+    revised: "2026.10.17",
+    scopeKo: "밀양 자동화센터 전 출고 담당자",
+    scopeZh: "密阳自动化中心全体出库担当",
+    descKo: "리패킹 오더 출고 3단계 중 1단계 (SAP 오더 인입) 절차입니다.",
+    descZh: "重新包装订单出库 3 个阶段中的第 1 阶段（SAP 订单接收）流程。",
+    cautionKo: "총 3단계로 진행됩니다. 2단계는 케이스 (2), 3단계는 케이스 (3)을 참고하세요.",
+    cautionZh: "共分 3 个阶段进行。第 2 阶段参照案例（2），第 3 阶段参照案例（3）。",
+    tags: ["리패킹", "SAP", "ME21N"],
+    steps: [
+      { ko: "아세아식품 오더 인입 (SAP)", zh: "亚细亚食品订单接收（SAP）", dko: "ME21N에 1900-1962(리패킹)-4000으로 등록", dzh: "在 ME21N 中以 1900-1962（重新包装）-4000 登记" },
+      { ko: "백그라운드 - SAP - VL10G", zh: "后台 - SAP - VL10G", dko: "백그라운드로 VL10G를 실행합니다.", dzh: "在后台执行 VL10G。" },
+      { ko: "WMS 등록 - 일반 이송 오더 동일하게 등록", zh: "WMS 登记 - 与一般移送订单相同登记", dko: "WMS에 일반 이송 오더와 동일하게 등록합니다.", dzh: "在 WMS 中与一般移送订单相同地登记。" },
+    ],
+  },
+  {
+    code: "RPK-02",
+    titleKo: "리패킹 오더 출고 케이스 (2)",
+    titleZh: "重新包装订单出库案例（2）",
+    category: "outbound",
+    centerKo: "공통",
+    centerZh: "通用",
+    revised: "2026.10.17",
+    scopeKo: "밀양 자동화센터 전 출고 담당자",
+    scopeZh: "密阳自动化中心全体出库担当",
+    descKo: "리패킹 오더 출고 3단계 중 2단계 (WMS 출고오더 등록) 절차입니다.",
+    descZh: "重新包装订单出库 3 个阶段中的第 2 阶段（WMS 出库订单登记）流程。",
+    cautionKo: "총 3단계로 진행됩니다. 1단계는 케이스 (1), 3단계는 케이스 (3)을 참고하세요.",
+    cautionZh: "共分 3 个阶段进行。第 1 阶段参照案例（1），第 3 阶段参照案例（3）。",
+    tags: ["리패킹", "WMS", "SAP"],
+    steps: [
+      { ko: "WMS 출고오더 등록 탭 오더생성", zh: "WMS 出库订单登记页签生成订单", dko: "러시아 법인 및 김연준 M 등 리패킹or직납 건 요청 건", dzh: "俄罗斯法人及金延俊 M 等重新包装或直供请求件" },
+      { ko: "출고오더 탭 정보 기입", zh: "填写出库订单页签信息", dko: "납품처 (번호), 배치, 거래선, 비고 등 기입", dzh: "填写交货方（编号）、批次、交易客户、备注等" },
+      { ko: "배차요청", zh: "派车请求", dko: "WMS 등록 후 운송팀 공유 및 운송경로 협의", dzh: "WMS 登记后与运输团队共享并协商运输路线" },
+      { ko: "WMS 출고처리", zh: "WMS 出库处理", dko: "WMS 기타오더 내 별도 출고처리", dzh: "在 WMS 其他订单内单独处理出库" },
+      { ko: "출고공유", zh: "出库共享", dko: "실물 출고 후 출고내용 이메일 공유 & \"문서번호 공유 요청\"", dzh: "实物出库后通过邮件共享出库内容并「请求共享单据编号」" },
+      { ko: "SAP 출고처리", zh: "SAP 出库处理", dko: "법인 통해 문서번호 받은 후 / SAP (ZSDR0230) -> 1420 조회 -> 선적문서생성 (내수/로컬) / 첨부이미지 참고 정보 기입 -> 선적완료 -> SAP 차이수량 확인 / (*선적계획, 완료일자는 WMS 전기일자 기준)", dzh: "通过法人收到单据编号后 / SAP (ZSDR0230) -> 1420 查询 -> 生成装运单据（内销/本地）/ 参照附件图片填写信息 -> 装运完成 -> 确认 SAP 差异数量 /（*装运计划、完成日期以 WMS 过账日期为准）" },
+    ],
+  },
+  {
+    code: "RPK-03",
+    titleKo: "리패킹 오더 출고 케이스 (3)",
+    titleZh: "重新包装订单出库案例（3）",
+    category: "outbound",
+    centerKo: "공통",
+    centerZh: "通用",
+    revised: "2026.10.17",
+    scopeKo: "밀양 자동화센터 전 출고 담당자",
+    scopeZh: "密阳自动化中心全体出库担当",
+    descKo: "리패킹 오더 출고 3단계 중 3단계 (수기송장·원주센터 이송) 절차입니다.",
+    descZh: "重新包装订单出库 3 个阶段中的第 3 阶段（手写运单·原州中心移送）流程。",
+    cautionKo: "별도 주의사항이 등록되지 않았습니다.",
+    cautionZh: "暂无登记的注意事项。",
+    tags: ["리패킹", "수기송장", "원주센터"],
+    steps: [
+      { ko: "리패킹 오더 인입", zh: "重新包装订单接收", dko: "정하광M 등 / 리패킹 이송 후 최종 원주센터 작업 예정 건 / 인입 시", dzh: "郑河光 M 等 / 重新包装移送后最终在原州中心作业的预定件 / 接收时" },
+      { ko: "운송팀 내용 공유", zh: "与运输团队共享内容", dko: "별도 WMS 없이 출고 진행되는 내용 / 운송팀 공유 및 배차 요청", dzh: "无单独 WMS 进行出库的内容 / 与运输团队共享并请求派车" },
+      { ko: "수기송장 작성", zh: "填写手写运单", dko: "WMS 오더 생성 없이, 인입된 오더 수량 및 배치 맞게 수기송장 작성", dzh: "不生成 WMS 订单，按接收订单的数量和批次填写手写运单" },
+      { ko: "WMS 'WCS 재고이동지시' 피킹", zh: "WMS「WCS 库存移动指示」拣货", dko: "별도로 오더 수량, 배치 맞게 / 재고이동지시 통해 출고 작업", dzh: "单独按订单数量、批次 / 通过库存移动指示进行出库作业" },
+      { ko: "실물 출고 후 로케이션 YARD", zh: "实物出库后库位改为 YARD", dko: "차량기사 수기송장 전달 및 출고관련 이메일 송부 후 / 실물만 출고된 재고 로케이션 'YARD' 변경", dzh: "向司机转交手写运单并发送出库相关邮件后 / 将仅实物出库的库存库位变更为「YARD」" },
+      { ko: "원주센터 전산이동", zh: "原州中心系统移转", dko: "리패킹 업체에서 작업 완료 후 / YARD 로 변경됐던, 실물출고 재고 / 원주센터로 무상운임 전달", dzh: "重新包装厂商作业完成后 / 将曾变更为 YARD 的实物出库库存 / 以免费运费转运至原州中心" },
+    ],
+  },
+  {
+    code: "WMS01",
+    titleKo: "부자재 수동출고",
+    titleZh: "辅料手动出库",
+    category: "outbound",
+    centerKo: "2센터",
+    centerZh: "2中心",
+    revised: "2026.10.16",
+    scopeKo: "출고 오더, 배차, 피킹, 상차 담당자",
+    scopeZh: "出库订单、派车、拣货、装车担当",
+    descKo: "부자재 수동출고 ([MV07] 수동공정출고지시) 절차입니다.",
+    descZh: "辅料手动出库（[MV07] 手动工序出库指示）流程。",
+    cautionKo: "2센터 한정 SOP.",
+    cautionZh: "仅限 2 中心的 SOP。",
+    tags: ["WMS", "MV07", "부자재", "수동출고"],
+    steps: [
+      { ko: "재고관리", zh: "库存管理", dko: "재고관리 메뉴로 이동합니다.", dzh: "进入库存管理菜单。" },
+      { ko: "재고이동", zh: "库存移动", dko: "재고이동 메뉴로 이동합니다.", dzh: "进入库存移动菜单。" },
+      { ko: "[MV07] 수동공정출고지시", zh: "[MV07] 手动工序出库指示", dko: "[MV07] 수동공정출고지시 화면을 엽니다.", dzh: "打开 [MV07] 手动工序出库指示画面。" },
+      { ko: "자재명 복사", zh: "复制物料名称", dko: "자재명을 복사합니다.", dzh: "复制物料名称。" },
+      { ko: "조회", zh: "查询", dko: "조회 버튼을 누릅니다.", dzh: "点击查询按钮。" },
+      { ko: "수량체크", zh: "核对数量", dko: "수량을 체크합니다.", dzh: "核对数量。" },
+      { ko: "To 로케이션", zh: "目标库位", dko: "To 로케이션을 지정합니다.", dzh: "指定目标库位。" },
+      { ko: "S_1-SB-01(114)", zh: "S_1-SB-01(114)", dko: "S_1-SB-01(114) 로케이션을 지정합니다.", dzh: "指定 S_1-SB-01(114) 库位。" },
+    ],
+  },
+  {
+    code: "WMS02",
+    titleKo: "납품 수량 분할",
+    titleZh: "交货数量拆分",
+    category: "outbound",
+    centerKo: "공통",
+    centerZh: "通用",
+    revised: "2026.10.16",
+    scopeKo: "출고 오더, 배차, 피킹, 상차 담당자",
+    scopeZh: "出库订单、派车、拣货、装车担当",
+    descKo: "[WDL88] 납품분할 : 내수(쿠팡) 출고 시 오더 분할 용도",
+    descZh: "[WDL88] 交货拆分：内销（Coupang）出库时拆分订单用途",
+    cautionKo: "전산·실물 수량 일치 확인",
+    cautionZh: "确认系统与实物数量一致",
+    tags: ["WMS", "WDL88", "분할"],
+    steps: wmsSteps(["출고관리(물류)", "出库管理（物流）"], ["[WDL88] 납품분할", "[WDL88] 交货拆分"], [
+      ["오더 일자 기간 선택", "选择订单日期期间", "조회할 오더 일자 기간을 지정합니다.", "指定要查询的订单日期期间。"],
+      ["조회", "查询", "조회 버튼을 누릅니다.", "点击查询按钮。"],
+      ["분할 필요 수량 기입", "填写需要拆分的数量", "분할이 필요한 수량을 기입합니다.", "填写需要拆分的数量。"],
+      ["분할", "拆分", "분할 버튼을 누릅니다.", "点击拆分按钮。"],
+      ["저장", "保存", "저장 버튼을 누릅니다.", "点击保存按钮。"],
+    ]),
+  },
+  {
+    code: "WCS01",
+    titleKo: "임시라벨 PLT 출고 진행",
+    titleZh: "临时标签托盘出库处理",
+    category: "outbound",
+    centerKo: "공통",
+    centerZh: "通用",
+    revised: "2026.10.13",
+    scopeKo: "밀양 자동화센터 전 출고 담당자",
+    scopeZh: "密阳自动化中心全体出库担当",
+    descKo: "임시라벨로 입고한 PLT 출고요청시 업무SOP",
+    descZh: "以临时标签入库的托盘出库请求时的业务 SOP",
+    cautionKo: "[WCS] 임시라벨 출력 절차를 참고하세요.",
+    cautionZh: "请参照 [WCS] 临时标签打印流程。",
+    tags: ["WCS", "임시라벨", "PLT"],
+    steps: [
+      { ko: "임시라벨 출고요청", zh: "临时标签出库请求", dko: "현장 또는 생산팀등에서 임시라벨 출고요청", dzh: "现场或生产团队等请求临时标签出库" },
+      { ko: "[엑셀] 임시라벨 내역 확인", zh: "[Excel] 确认临时标签明细", dko: "임시라벨 엑셀파일 상 요청 PLT가 있는지 확인", dzh: "确认临时标签 Excel 文件中是否有请求的托盘" },
+      { ko: "[메뉴] 출고 관리", zh: "[菜单] 出库管理", dko: "출고 관리 메뉴로 이동합니다.", dzh: "进入出库管理菜单。" },
+      { ko: "[메뉴] 수동 출고", zh: "[菜单] 手动出库", dko: "수동 출고 메뉴로 이동합니다.", dzh: "进入手动出库菜单。" },
+      { ko: "[WCS] PID 기준 조회", zh: "[WCS] 按 PID 查询", dko: "파렛트 열에 PID 조회", dzh: "在托盘列按 PID 查询" },
+      { ko: "[WCS] 체크 후 출고대 설정 및 출고", zh: "[WCS] 勾选后设置出库台并出库", dko: "1. 해당 PLD선택 / 2. 출고대 : 부자재 출고대 (191) / 3. 작업우선순위 : 정상 / 4. 출고 클릭", dzh: "1. 选择相应 PLD / 2. 出库台：辅料出库台 (191) / 3. 作业优先级：正常 / 4. 点击出库" },
+      { ko: "[엑셀] 내역 파일중 불출 완료 등록", zh: "[Excel] 在明细文件中登记发放完成", dko: "해당 PLT 불출 열에 O표시", dzh: "在相应托盘的发放列标记 O" },
+    ],
+  },
+  {
+    code: "WCS02",
+    titleKo: "임시라벨 출력",
+    titleZh: "临时标签打印",
+    category: "inventory",
+    centerKo: "미지정",
+    centerZh: "未指定",
+    revised: "2026.10.13",
+    scopeKo: "밀양 자동화센터 재고 담당자",
+    scopeZh: "密阳自动化中心库存担当",
+    descKo: "전산 미등록의 물건을 창고에 넣기 위해 임시 라벨을 발행함. 대표적으로 생산팀에서 생산물품을 정리하여 창고에 넣을때 요청함.",
+    descZh: "为将未登记系统的物品放入仓库而发行临时标签。代表性情况是生产团队整理生产物品放入仓库时请求。",
+    cautionKo: "임시라벨 출고방법은 [WCS] 임시라벨 PLT 출고 진행 절차를 참고하세요.",
+    cautionZh: "临时标签出库方法请参照 [WCS] 临时标签托盘出库处理流程。",
+    tags: ["WCS", "임시라벨", "라벨발행"],
+    steps: [
+      { ko: "WCS", zh: "WCS", dko: "WCS 화면에서 작업을 시작합니다.", dzh: "在 WCS 画面开始作业。" },
+      { ko: "[메뉴] 재고관리", zh: "[菜单] 库存管理", dko: "WMS 재고관리 메뉴로 들어갑니다.", dzh: "进入 WMS 库存管理菜单。" },
+      { ko: "품번 307019 입력", zh: "输入物料编号 307019", dko: "창고내 완제품과 섞이지 않기 위해 단종 품목으로 발행.", dzh: "为避免与仓库内成品混放，以停产品目发行。" },
+      { ko: "라벨 발행 정보 입력", zh: "输入标签发行信息", dko: "1.생산라인 : 이니셜+날짜 (예. YB1012) / 2.워크오더 : 이니셜+날짜 / 3. 제조일자/유통기한 : 발행일 / 4. 적입 수량 : 1 / 5. 단위 : EA / 6. 라벨수량 : 필요수", dzh: "1.生产线：首字母+日期（例. YB1012）/ 2.工单：首字母+日期 / 3. 生产日期/保质期：发行日 / 4. 装载数量：1 / 5. 单位：EA / 6. 标签数量：所需数量" },
+      { ko: "라벨 발행 클릭", zh: "点击标签发行", dko: "라벨 발행 버튼을 클릭합니다.", dzh: "点击标签发行按钮。" },
+      { ko: "라벨 출력", zh: "打印标签", dko: "라벨기통해 라벨 출력", dzh: "通过标签打印机打印标签" },
+      { ko: "[엑셀] 임시라벨 발행내역 입력", zh: "[Excel] 输入临时标签发行明细", dko: "1)경로 / 밀양1센터 -> [11]번 폴더 -> 임시라벨_발행내역_정리 엑셀 파일 작성 / 2) 발행일시, PLT ID, 내역 입력", dzh: "1) 路径 / 密阳1中心 -> [11]号文件夹 -> 填写临时标签发行明细整理 Excel 文件 / 2) 输入发行日期时间、托盘 ID、明细" },
+    ],
+  },
+  {
+    code: "WDL05",
+    titleKo: "할당관리",
+    titleZh: "分配管理",
+    category: "outbound",
+    centerKo: "미지정",
+    centerZh: "未指定",
+    revised: "2026.08.08",
+    scopeKo: "밀양 자동화센터 전 출고 담당자",
+    scopeZh: "密阳自动化中心全体出库担当",
+    descKo: "생성된 웨이브(오더 별) 할당/할당 취소 시 사용",
+    descZh: "对已生成的波次（按订单）进行分配/取消分配时使用",
+    cautionKo: "처리 결과를 현장에서 다시 확인",
+    cautionZh: "在现场再次确认处理结果",
+    tags: ["WMS", "할당", "WAVE"],
+    steps: wmsSteps(["출고관리(물류)", "出库管理（物流）"], ["[WDL05] 할당관리", "[WDL05] 分配管理"], [
+      ["오더 일자 기간 선택", "选择订单日期期间", "오더타입 및 배차요청일자 지정", "指定订单类型及派车请求日期"],
+      ["조회", "查询", "조회 버튼을 누릅니다.", "点击查询按钮。"],
+      ["체크박스 전체 클릭", "点击全部复选框", "번호 체크박스 선택 및 도크번호 지정", "选择编号复选框并指定月台编号"],
+      ["할당", "分配", "할당 버튼을 누릅니다.", "点击分配按钮。"],
+    ]),
+  },
+  {
+    code: "WDL02",
+    titleKo: "배차 등록",
+    titleZh: "派车登记",
+    category: "outbound",
+    centerKo: "미지정",
+    centerZh: "未指定",
+    revised: "2026.08.08",
+    scopeKo: "밀양 자동화센터 전 출고 담당자",
+    scopeZh: "密阳自动化中心全体出库担当",
+    descKo: "배차번호 생성된 오더의 차량등록 및 배차등록 진행",
+    descZh: "对已生成派车编号的订单进行车辆登记及派车登记",
+    cautionKo: "처리 결과를 현장에서 다시 확인",
+    cautionZh: "在现场再次确认处理结果",
+    tags: ["WMS", "배차", "차량등록"],
+    steps: wmsSteps(["출고관리(물류)", "出库管理（物流）"], ["[WDL02] 배차 등록", "[WDL02] 派车登记"], [
+      ["오더 일자 기간 선택", "选择订单日期期间", "조회할 오더 일자 기간을 지정합니다.", "指定要查询的订单日期期间。"],
+      ["조회", "查询", "조회 버튼을 누릅니다.", "点击查询按钮。"],
+      ["차량번호, 차량기사, 연락처 정보 기입 후 반영", "填写车牌号、司机、联系方式后反映", "차량번호, 차량기사, 연락처 정보를 기입한 후 반영합니다.", "填写车牌号、司机、联系方式后反映。"],
+      ["운송경로 지정", "指定运输路线", "운송경로를 지정합니다.", "指定运输路线。"],
+      ["저장", "保存", "저장 버튼을 누릅니다.", "点击保存按钮。"],
+    ]),
+  },
+  {
+    code: "WDL01",
+    titleKo: "배차 계획",
+    titleZh: "派车计划",
+    category: "outbound",
+    centerKo: "미지정",
+    centerZh: "未指定",
+    revised: "2026.08.08",
+    scopeKo: "밀양 자동화센터 전 출고 담당자",
+    scopeZh: "密阳自动化中心全体出库担当",
+    descKo: "출고오더에 배차번호 생성 (운송사, 배차일자 지정)",
+    descZh: "为出库订单生成派车编号（指定承运商、派车日期）",
+    cautionKo: "처리 결과를 현장에서 다시 확인",
+    cautionZh: "在现场再次确认处理结果",
+    tags: ["WMS", "배차", "일괄배차"],
+    steps: wmsSteps(["출고관리(물류)", "出库管理（物流）"], ["[WDL01] 배차 계획", "[WDL01] 派车计划"], [
+      ["오더 일자 기간 선택", "选择订单日期期间", "조회할 오더 일자 기간을 지정합니다.", "指定要查询的订单日期期间。"],
+      ["조회", "查询", "조회 버튼을 누릅니다.", "点击查询按钮。"],
+      ["배차 정보리스트", "派车信息列表", "배차 정보리스트를 확인합니다.", "确认派车信息列表。"],
+      ["운송사·배차 정보 지정", "指定承运商及派车信息", "운송사(30014, Fix), 배차 요청일자(실 출고일), 차량 유형(수출 : 20 or 40ft / 내수 : 8톤 or 11톤) 지정, 도크번호(내수 A~E) 지정, 비고(특이사항 있는 경우 기입)", "指定承运商（30014, Fix）、派车请求日期（实际出库日）、车辆类型（出口：20 or 40ft / 内销：8吨 or 11吨）、月台编号（内销 A~E）、备注（如有特殊事项时填写）"],
+      ["일괄배차", "批量派车", "일괄배차 버튼을 누릅니다.", "点击批量派车按钮。"],
+    ]),
+  },
+  {
+    code: "WDL00",
+    titleKo: "출고오더 조회",
+    titleZh: "出库订单查询",
+    category: "outbound",
+    centerKo: "미지정",
+    centerZh: "未指定",
+    revised: "2026.08.08",
+    scopeKo: "밀양 자동화센터 전 출고 담당자",
+    scopeZh: "密阳自动化中心全体出库担当",
+    descKo: "인터페이스 된 오더 조회 및 삭제, 특이사항 기입",
+    descZh: "查询及删除已接口的订单、填写特殊事项",
+    cautionKo: "처리 결과를 현장에서 다시 확인",
+    cautionZh: "在现场再次确认处理结果",
+    tags: ["WMS", "출고오더", "비고"],
+    steps: wmsSteps(["출고관리(물류)", "出库管理（物流）"], ["[WDL00] 출고오더 조회", "[WDL00] 出库订单查询"], [
+      ["오더 일자 기간 선택", "选择订单日期期间", "조회할 오더 일자 기간을 지정합니다.", "指定要查询的订单日期期间。"],
+      ["조회", "查询", "조회 버튼을 누릅니다.", "点击查询按钮。"],
+      ["오더 삭제 필요 시", "需要删除订单时", "오더 삭제가 필요한 경우 진행합니다.", "需要删除订单时进行。"],
+      ["번호 체크 박스 선택", "选择编号复选框", "번호 체크 박스를 선택합니다.", "选择编号复选框。"],
+      ["삭제", "删除", "삭제 버튼을 누릅니다.", "点击删除按钮。"],
+      ["오더 특이사항 기입 시", "填写订单特殊事项时", "오더 특이사항 기입이 필요한 경우 진행합니다.", "需要填写订单特殊事项时进行。"],
+      ["비고", "备注", "비고 항목을 확인합니다.", "确认备注项目。"],
+      ["특이사항 기입", "填写特殊事项", "특이사항을 기입합니다.", "填写特殊事项。"],
+      ["저장(비고)", "保存（备注）", "저장(비고) 버튼을 누릅니다.", "点击保存（备注）按钮。"],
+    ]),
+  },
+  {
+    code: "OM03",
+    titleKo: "출고오더등록(WMS)",
+    titleZh: "出库订单登记（WMS）",
+    category: "outbound",
+    centerKo: "미지정",
+    centerZh: "未指定",
+    revised: "2026.08.08",
+    scopeKo: "밀양 자동화센터 전 출고 담당자",
+    scopeZh: "密阳自动化中心全体出库担当",
+    descKo: "WMS를 이용하여, 오더를 신규 생성할 때 사용",
+    descZh: "使用 WMS 新建订单时使用",
+    cautionKo: "전산·실물 수량 일치 확인",
+    cautionZh: "确认系统与实物数量一致",
+    tags: ["WMS", "OM03", "오더생성"],
+    steps: wmsSteps(["출고관리(물류)", "出库管理（物流）"], ["[OM03] 출고오더등록(WMS)", "[OM03] 出库订单登记（WMS）"], [
+      ["+ 생성", "+ 生成", "+ 생성 버튼을 누릅니다.", "点击 + 生成按钮。"],
+      ["문서정보", "单据信息", "문서정보 탭 또는 영역을 확인합니다.", "确认单据信息页签或区域。"],
+      ["오더 일자 기간 선택", "选择订单日期期间", "조회할 오더 일자 기간을 지정합니다.", "指定要查询的订单日期期间。"],
+      ["하단 아이템 리스트", "下方项目列表", "하단 아이템 리스트를 확인합니다.", "确认下方项目列表。"],
+      ["+ 클릭", "点击 +", "+ 버튼을 클릭합니다.", "点击 + 按钮。"],
+      ["자재번호, 오더수량 기입", "填写物料编号、订单数量", "자재번호와 오더수량을 기입합니다.", "填写物料编号和订单数量。"],
+      ["저장", "保存", "저장 버튼을 누릅니다.", "点击保存按钮。"],
+    ]),
+  },
+  {
+    code: "WDL67",
+    titleKo: "MES 작업지시 현황",
+    titleZh: "MES作业指示现状",
+    category: "outbound",
+    centerKo: "미지정",
+    centerZh: "未指定",
+    revised: "2026.08.08",
+    scopeKo: "밀양 자동화센터 전 출고 담당자",
+    scopeZh: "密阳自动化中心全体出库担当",
+    descKo: "밀양공장 생산 지시 현황 및 실적 확인 시 사용",
+    descZh: "确认密阳工厂生产指示现状及实绩时使用",
+    cautionKo: "처리 결과를 현장에서 다시 확인",
+    cautionZh: "在现场再次确认处理结果",
+    tags: ["MES", "작업지시", "생산"],
+    steps: wmsSteps(["출고관리(물류)", "出库管理（物流）"], ["[WDL67] MES 작업지시 현황", "[WDL67] MES作业指示现状"], [
+      ["지시일자 지정", "指定指示日期", "지시일자를 지정합니다.", "指定指示日期。"],
+      ["라인코드", "产线代码", "라인코드를 확인합니다.", "确认产线代码。"],
+      ["공장·라인 선택", "选择工厂及产线", "밀양1공장(유탕·건면 : LC01~LC05 / 병소스 : LH01~LH02), 밀양2공장(LC06~LC11)", "密阳1工厂（油炸·干面：LC01~LC05 / 瓶装酱料：LH01~LH02）、密阳2工厂（LC06~LC11）"],
+      ["조회", "查询", "조회 버튼을 누릅니다.", "点击查询按钮。"],
+    ]),
+  },
+  {
+    code: "WDL66",
+    titleKo: "MES 생산지시 조회",
+    titleZh: "MES生产指示查询",
+    category: "outbound",
+    centerKo: "미지정",
+    centerZh: "未指定",
+    revised: "2026.08.08",
+    scopeKo: "밀양 자동화센터 전 출고 담당자",
+    scopeZh: "密阳自动化中心全体出库担当",
+    descKo: "밀양공장 생산 지시 현황 및 실적 확인 시 사용",
+    descZh: "确认密阳工厂生产指示现状及实绩时使用",
+    cautionKo: "처리 결과를 현장에서 다시 확인",
+    cautionZh: "在现场再次确认处理结果",
+    tags: ["MES", "생산지시", "생산"],
+    steps: wmsSteps(["출고관리(물류)", "出库管理（物流）"], ["[WDL66] MES 생산지시 조회", "[WDL66] MES生产指示查询"], [
+      ["지시일자 지정", "指定指示日期", "지시일자를 지정합니다.", "指定指示日期。"],
+      ["라인코드", "产线代码", "라인코드를 확인합니다.", "确认产线代码。"],
+      ["공장·라인 선택", "选择工厂及产线", "밀양1공장(유탕·건면 : LC01~LC05 / 병소스 : LH01~LH02), 밀양2공장(LC06~LC11)", "密阳1工厂（油炸·干面：LC01~LC05 / 瓶装酱料：LH01~LH02）、密阳2工厂（LC06~LC11）"],
+      ["조회", "查询", "조회 버튼을 누릅니다.", "点击查询按钮。"],
+    ]),
+  },
+  {
+    code: "ASEA-01",
+    titleKo: "아세아 식품 납품 건",
+    titleZh: "亚细亚食品交货件",
+    category: "outbound",
+    centerKo: "미지정",
+    centerZh: "未指定",
+    revised: "2026.08.05",
+    scopeKo: "밀양 자동화센터 전 출고 담당자",
+    scopeZh: "密阳自动化中心全体出库担当",
+    descKo: "아세아 식품 납품 건 처리 절차입니다.",
+    descZh: "亚细亚食品交货件处理流程。",
+    cautionKo: "전산·실물 수량 일치 확인",
+    cautionZh: "确认系统与实物数量一致",
+    tags: ["SAP", "ME21N", "납품"],
+    steps: [
+      { ko: "ME21N 구매 오더 (SAP)", zh: "ME21N 采购订单（SAP）", dko: "아세아 식품 납품 건: ME21N 구매 오더 생성", dzh: "亚细亚食品交货件：生成 ME21N 采购订单" },
+      { ko: "내수일반이송 (SAP)", zh: "内销一般移送（SAP）", dko: "내수일반이송을 선택합니다.", dzh: "选择内销一般移送。" },
+      { ko: "자재번호 / 수량 / 배치코드 기입 (SAP)", zh: "填写物料编号 / 数量 / 批次代码（SAP）", dko: "자재번호, 수량, 배치코드를 기입합니다.", dzh: "填写物料编号、数量、批次代码。" },
+      { ko: "플랜트 1900 (SAP)", zh: "工厂 1900（SAP）", dko: "플랜트 1900을 지정합니다.", dzh: "指定工厂 1900。" },
+      { ko: "저장위치 1962(리패킹저장창고) (SAP)", zh: "存储地点 1962（重新包装存储仓库）（SAP）", dko: "저장위치 1962(리패킹저장창고)를 지정합니다.", dzh: "指定存储地点 1962（重新包装存储仓库）。" },
+      { ko: "오더 생성 (SAP)", zh: "生成订单（SAP）", dko: "오더를 생성합니다.", dzh: "生成订单。" },
+      { ko: "VL10G (SAP)", zh: "VL10G（SAP）", dko: "VL10G를 실행합니다.", dzh: "执行 VL10G。" },
+      { ko: "백그라운드 (SAP+WMS)", zh: "后台（SAP+WMS）", dko: "백그라운드 처리를 확인합니다.", dzh: "确认后台处理。" },
+      { ko: "11톤 (WMS)", zh: "11吨（WMS）", dko: "11톤 차량을 지정합니다.", dzh: "指定 11 吨车辆。" },
+      { ko: "할당 및 출고 (WMS)", zh: "分配及出库（WMS）", dko: "할당 및 출고를 진행합니다.", dzh: "进行分配及出库。" },
+    ],
+  },
+  {
+    code: "ETC-01",
+    titleKo: "배차계획 번호 없으면",
+    titleZh: "没有派车计划编号时",
+    category: "outbound",
+    centerKo: "미지정",
+    centerZh: "未指定",
+    revised: "2026.07.21",
+    scopeKo: "밀양 자동화센터 전 출고 담당자",
+    scopeZh: "密阳自动化中心全体出库担当",
+    descKo: "배차계획 번호가 없을 때 SAP에서 오더를 생성하는 절차입니다.",
+    descZh: "没有派车计划编号时在 SAP 中生成订单的流程。",
+    cautionKo: "처리 결과를 현장에서 다시 확인",
+    cautionZh: "在现场再次确认处理结果",
+    tags: ["SAP", "VA01", "배차계획"],
+    steps: [
+      { ko: "SAP VA01", zh: "SAP VA01", dko: "SAP VA01 화면을 엽니다.", dzh: "打开 SAP VA01 画面。" },
+      { ko: "오더유형", zh: "订单类型", dko: "오더유형을 선택합니다.", dzh: "选择订单类型。" },
+      { ko: "내수일반이송", zh: "内销一般移送", dko: "내수일반이송을 선택합니다.", dzh: "选择内销一般移送。" },
+      { ko: "엔터", zh: "回车", dko: "엔터를 누릅니다.", dzh: "按回车键。" },
+      { ko: "자재", zh: "物料", dko: "자재를 입력합니다.", dzh: "输入物料。" },
+      { ko: "수량", zh: "数量", dko: "수량을 입력합니다.", dzh: "输入数量。" },
+      { ko: "배치", zh: "批次", dko: "배치를 입력합니다.", dzh: "输入批次。" },
+      { ko: "S.Loc", zh: "S.Loc", dko: "S.Loc을 입력합니다.", dzh: "输入 S.Loc。" },
+      { ko: "플랜트", zh: "工厂", dko: "플랜트를 입력합니다.", dzh: "输入工厂。" },
+      { ko: "1900", zh: "1900", dko: "플랜트 1900을 지정합니다.", dzh: "指定工厂 1900。" },
+      { ko: "저장", zh: "保存", dko: "저장합니다.", dzh: "保存。" },
+      { ko: "VL10G", zh: "VL10G", dko: "VL10G를 실행합니다.", dzh: "执行 VL10G。" },
+      { ko: "WMS", zh: "WMS", dko: "WMS에서 확인합니다.", dzh: "在 WMS 中确认。" },
+      { ko: "정보 다 볼 수 있다", zh: "可以查看全部信息", dko: "정보를 모두 볼 수 있습니다.", dzh: "可以查看全部信息。" },
+      { ko: "플랜트 1400 밀양(원주1100 익상1200)", zh: "工厂 1400 密阳（原州1100 益山1200）", dko: "플랜트 1400 밀양(원주1100 익상1200)을 확인합니다.", dzh: "确认工厂 1400 密阳（原州1100 益山1200）。" },
+      { ko: "저장위치", zh: "存储地点", dko: "저장위치를 확인합니다.", dzh: "确认存储地点。" },
+      { ko: "1962", zh: "1962", dko: "저장위치 1962를 확인합니다.", dzh: "确认存储地点 1962。" },
+      { ko: "1960", zh: "1960", dko: "저장위치 1960을 확인합니다.", dzh: "确认存储地点 1960。" },
+      { ko: "1966", zh: "1966", dko: "저장위치 1966을 확인합니다.", dzh: "确认存储地点 1966。" },
+      { ko: "1975", zh: "1975", dko: "저장위치 1975를 확인합니다.", dzh: "确认存储地点 1975。" },
+      { ko: "이송", zh: "移送", dko: "이송을 진행합니다.", dzh: "进行移送。" },
+      { ko: "VL02N", zh: "VL02N", dko: "VL02N 화면을 엽니다.", dzh: "打开 VL02N 画面。" },
+      { ko: "자재입고", zh: "物料入库", dko: "자재입고를 진행합니다.", dzh: "进行物料入库。" },
+      { ko: "저장위치", zh: "存储地点", dko: "저장위치를 지정합니다.", dzh: "指定存储地点。" },
+      { ko: "이송가능재고", zh: "可移送库存", dko: "이송가능재고를 확인합니다.", dzh: "确认可移送库存。" },
+      { ko: "11톤", zh: "11吨", dko: "11톤 차량을 지정합니다.", dzh: "指定 11 吨车辆。" },
+      { ko: "8톤", zh: "8吨", dko: "8톤 차량을 지정합니다.", dzh: "指定 8 吨车辆。" },
+      { ko: "WMS 시스템", zh: "WMS 系统", dko: "WMS 시스템 기준으로 다음 메뉴 경로를 확인합니다.", dzh: "以 WMS 系统为准，确认下一步的菜单路径。" },
+      { ko: "볼수있다", zh: "可以查看", dko: "WMS에서 볼 수 있습니다.", dzh: "可以在 WMS 中查看。" },
+    ],
+  },
+  {
+    code: "ETC-02",
+    titleKo: "출고완료처리",
+    titleZh: "出库完成处理",
+    category: "outbound",
+    centerKo: "미지정",
+    centerZh: "未指定",
+    revised: "2026.07.21",
+    scopeKo: "밀양 자동화센터 전 출고 담당자",
+    scopeZh: "密阳自动化中心全体出库担当",
+    descKo: "출고완료처리 절차 (PR Desk에 절차 미등록 상태)",
+    descZh: "出库完成处理流程（PR Desk 中尚未登记流程）",
+    cautionKo: "현장 점검 포인트는 추후 보완 예정입니다.",
+    cautionZh: "现场检查点待后续补充。",
+    tags: ["출고완료"],
+    steps: [
+      { ko: "절차 등록 예정", zh: "流程待登记", dko: "PR Desk에 아직 절차가 등록되지 않았습니다. 등록 후 업데이트 예정입니다.", dzh: "PR Desk 中尚未登记流程，登记后将更新。" },
+    ],
+  },
+  {
+    code: "SD55",
+    titleKo: "재고 조회(ALL)",
+    titleZh: "库存查询（ALL）",
+    category: "inventory",
+    centerKo: "미지정",
+    centerZh: "未指定",
+    revised: "2026.07.29",
+    scopeKo: "밀양 자동화센터 재고 담당자",
+    scopeZh: "密阳自动化中心库存担当",
+    descKo: "전 센터 재고 조회 절차입니다.",
+    descZh: "全中心库存查询流程。",
+    cautionKo: "별도 주의사항이 등록되지 않았습니다.",
+    cautionZh: "暂无登记的注意事项。",
+    tags: ["재고", "SD55", "조회"],
+    steps: [
+      { ko: "WMS 접속", zh: "进入 WMS", dko: "WMS 화면에서 작업을 시작합니다.", dzh: "在 WMS 画面开始作业。" },
+      { ko: "재고관리", zh: "库存管理", dko: "재고관리 메뉴로 이동합니다.", dzh: "进入库存管理菜单。" },
+      { ko: "[SD55] 재고 조회(ALL)", zh: "[SD55] 库存查询（ALL）", dko: "[SD55] 재고 조회(ALL) 화면을 엽니다.", dzh: "打开 [SD55] 库存查询（ALL）画面。" },
+      { ko: "물류센터", zh: "物流中心", dko: "물류센터를 확인합니다.", dzh: "确认物流中心。" },
+      { ko: "센터 선택", zh: "选择中心", dko: "센터를 선택합니다.", dzh: "选择中心。" },
+      { ko: "조회", zh: "查询", dko: "조회 버튼을 누릅니다.", dzh: "点击查询按钮。" },
+    ],
+  },
+  {
+    code: "SD01",
+    titleKo: "재고 현황",
+    titleZh: "库存现状",
+    category: "inventory",
+    centerKo: "미지정",
+    centerZh: "未指定",
+    revised: "2026.07.21",
+    scopeKo: "밀양 자동화센터 재고 담당자",
+    scopeZh: "密阳自动化中心库存担当",
+    descKo: "재고 현황 조회 절차입니다.",
+    descZh: "库存现状查询流程。",
+    cautionKo: "현장 점검 포인트는 추후 보완 예정입니다.",
+    cautionZh: "现场检查点待后续补充。",
+    tags: ["재고", "SD01", "현황"],
+    steps: [
+      { ko: "WMS 접속", zh: "进入 WMS", dko: "WMS 화면에서 작업을 시작합니다.", dzh: "在 WMS 画面开始作业。" },
+      { ko: "재고관리", zh: "库存管理", dko: "재고관리 메뉴로 이동합니다.", dzh: "进入库存管理菜单。" },
+      { ko: "[SD01] 재고 현황", zh: "[SD01] 库存现状", dko: "[SD01] 재고 현황 화면을 엽니다.", dzh: "打开 [SD01] 库存现状画面。" },
+      { ko: "완제품 조회 기준", zh: "成品查询基准", dko: "완제품 조회 기준을 확인합니다.", dzh: "确认成品查询基准。" },
+      { ko: "자재유형", zh: "物料类型", dko: "자재유형을 선택합니다.", dzh: "选择物料类型。" },
+      { ko: "완제품·부자재 선택", zh: "选择成品·辅料", dko: "완제품(FERT 2.삼양식품 제품 / HAWA 4.삼양식품 상품 선택), 부자재(ROH2 1.삼양식품 부재료)", dzh: "成品（FERT 2.三养食品产品 / HAWA 4.三养食品商品选择）、辅料（ROH2 1.三养食品副材料）" },
+      { ko: "조회", zh: "查询", dko: "조회 버튼을 누릅니다.", dzh: "点击查询按钮。" },
+    ],
+  },
 ];
+
+sopItems.forEach((x) => { x.hasSimulator = true; });
 
 const hotTags = ["NOREAD", "SITE141", "WMS", "WCS", "KPP", "공출고", "FIFO", "재고이동"];
 
@@ -703,7 +1283,7 @@ function BriefingPanel({ lang, item, onOpenDetail, onOpenSimulator }) {
       {item.hasSimulator ? (
         <>
           <button
-            onClick={onOpenSimulator}
+            onClick={() => onOpenSimulator(item)}
             className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black text-white shadow-sm transition hover:opacity-90"
             style={{ background: ORANGE }}
           >
@@ -845,7 +1425,7 @@ function SopDetailModal({ lang, item, onClose, onOpenSimulator, onSwitchItem, no
                 </div>
                 {item.hasSimulator && (
                   <button
-                    onClick={onOpenSimulator}
+                    onClick={() => onOpenSimulator(item)}
                     className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black text-white transition hover:opacity-90"
                     style={{ background: ORANGE }}
                   >
@@ -947,6 +1527,277 @@ function WmsMenuTree({ nodes, depth = 0 }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/* ---------------- generic practice simulator (added 2026-11-24) ---------------- */
+/* Screen layouts observed read-only from WMS; all data below is dummy practice data. */
+const simConfigs = {
+  WDL00: { screen: "[WDL00] 출고오더 조회", fields: ["오더타입", "문서상태", "오더일자", "오더번호", "배차계획번호", "D/N번호"], buttons: ["조회", "저장(비고)", "삭제"], primary: "저장(비고)", primaryZh: "保存（备注）", columns: ["번호", "거래선/차수", "비고", "배차요청일자", "배치코드", "DOCK번호", "차량번호", "WAVE번호", "오더번호", "D/N번호", "출고상태"] },
+  WDL01: { screen: "[WDL01] 배차 계획", fields: ["오더타입", "오더일자", "오더번호", "배차요청일자", "배차계획번호", "D/N번호"], buttons: ["조회", "일괄배차", "합배차", "번호해제"], primary: "일괄배차", primaryZh: "批量派车", columns: ["번호", "거래선/차수", "배치코드", "오더수량", "비고", "오더번호", "D/N번호", "납품처명", "배차계획번호", "운송사", "배차요청일자"] },
+  WDL02: { screen: "[WDL02] 배차 등록", fields: ["오더타입", "오더일자", "오더번호", "배차요청일자", "배차계획번호", "운송사"], buttons: ["조회", "저장", "초기화"], primary: "저장", primaryZh: "保存", columns: ["번호", "배차요청일자", "납품처명", "오더일자", "배차계획번호", "차량번호", "비고", "운송경로", "연락처", "차량기사"] },
+  WDL04: { screen: "[WDL04] WAVE 생성", fields: ["오더타입", "오더일자", "오더번호", "배차요청일자", "배차계획번호", "WAVE번호"], buttons: ["조회", "WAVE생성", "WAVE삭제", "반영"], primary: "WAVE생성", primaryZh: "生成WAVE", columns: ["번호", "DOCK번호", "거래선/차수", "D/N번호", "배치코드", "비고", "자재번호", "오더수량", "WAVE번호", "기본수량", "자재명"] },
+  WDL05: { screen: "[WDL05] 할당관리", fields: ["오더타입", "오더번호", "배차요청일자", "출고상태", "배차계획번호", "WAVE번호"], buttons: ["조회", "할당", "할당취소"], primary: "할당", primaryZh: "分配", columns: ["번호", "DOCK번호", "거래선/차수", "배치코드", "오더수량", "상태", "차량번호", "WAVE번호", "납품처명", "배차계획번호"] },
+  WDL09: { screen: "[WDL09] 출고내역조회", fields: ["출고유형", "배차요청일자", "출고문서번호", "출고일자", "오더번호", "WAVE번호"], buttons: ["조회", "미리보기"], primary: "미리보기", primaryZh: "预览", columns: ["번호", "출고센터", "거래선/차수", "배차계획번호", "차량번호", "WAVE번호", "오더번호", "문서상태명", "배차요청일자", "출고일자", "출고수량"] },
+  WDL16: { screen: "[WDL16] 피킹관리", fields: ["출고유형", "문서상태", "배차요청일자", "출고문서번호", "작업지시번호", "WAVE번호"], buttons: ["조회", "피킹완료", "피킹취소", "피킹지시서"], primary: "피킹완료", primaryZh: "拣货完成", columns: ["번호", "물류센터", "WAVE번호", "작업문서번호", "배차요청일자", "출고유형", "출고상태명", "출고지시수량", "완료수량", "검수수량"] },
+  WDL19: { screen: "[WDL19] 출고이력 상세조회", fields: ["출고유형", "배차요청일자", "출고문서번호", "출고일자", "오더번호", "WAVE번호"], buttons: ["조회", "상세 확인"], primary: "상세 확인", primaryZh: "查看详情", columns: ["번호", "출고센터", "출고타입", "차량번호", "WAVE번호", "거래선/차수", "출고문서번호", "오더번호", "납품처명", "자재번호", "자재명", "출고수량"] },
+  WDL26: { screen: "[WDL26] 자동창고 피킹관리", fields: ["출고유형", "배차요청일자", "출고문서번호", "작업지시번호", "WAVE번호", "WCS 예약여부"], buttons: ["조회", "예약전송", "WCS작업지시", "WCS지시취소"], primary: "WCS작업지시", primaryZh: "WCS作业指示", columns: ["번호", "자재번호", "자재명", "출고지시수량", "From 로케이션", "To 로케이션", "출고대번호", "WCS 예약여부", "WAVE번호", "DOCK번호"] },
+  WDL66: { screen: "[WDL66] MES 생산지시 조회", fields: ["지시일자", "라인코드", "자재번호", "자재명"], buttons: ["조회", "상세 확인"], primary: "상세 확인", primaryZh: "查看详情", columns: ["번호", "생산지시번호", "지시일자", "상태", "라인코드", "라인명", "품번", "품번명", "지시수량", "양품수량", "불량수량", "잔량"] },
+  WDL67: { screen: "[WDL67] MES 작업지시 현황", fields: ["작업일자", "라인코드", "품번"], buttons: ["조회", "상세 확인"], primary: "상세 확인", primaryZh: "查看详情", columns: ["번호", "작업지시번호", "작업일자", "우선순위", "상태", "라인코드", "라인명", "품번", "품번명", "지시수량", "양품수량", "불량수량"] },
+  WDL77: { screen: "[WDL77] 피킹검수", fields: ["출고유형", "배차요청일자", "출고문서번호", "작업지시번호", "오더번호", "WAVE번호"], buttons: ["조회", "피킹지시서", "저장"], primary: "저장", primaryZh: "保存", columns: ["번호", "검수수량", "거래선/차수", "DOCK번호", "WAVE번호", "작업문서번호", "배차계획번호", "배치코드", "차량번호", "출고지시수량", "완료수량"] },
+  WDL98: { screen: "[WDL98] 배차등록(수출)", fields: ["오더타입", "문서상태", "오더일자", "오더번호", "배차요청일자", "운송사"], buttons: ["조회", "저장"], primary: "저장", primaryZh: "保存", columns: ["번호", "컨테이너 규격", "비고", "오더수량", "도크번호", "배치코드", "거래선/차수", "오더번호", "배차번호", "납품처명"] },
+  AS01: { screen: "[AS01] 입고예정 생성(완제품)", fields: ["입고유형", "문서상태", "오더일자", "오더번호", "입고예정일자", "공급사코드"], buttons: ["조회", "저장", "잔여 오더수량 생성"], primary: "저장", primaryZh: "保存", columns: ["번호", "물류센터", "입고유형", "문서상태명", "오더번호", "오더일자", "입고센터", "공급사명", "오더수량", "입고예정수량", "잔량"] },
+  AS02: { screen: "[AS02] 입고예정 삭제", fields: ["입고유형", "입고상태", "오더일자", "오더번호", "입고예정일자", "입고예정번호"], buttons: ["조회", "삭제"], primary: "삭제", primaryZh: "删除", columns: ["번호", "물류센터", "입고예정번호", "오더번호", "오더일자", "입고예정일자", "입고유형명", "입고상태", "공급사명"] },
+  AS03: { screen: "[AS03] 입고검수 입력", fields: ["입고유형", "검수상태", "오더일자", "오더번호", "입고예정일자", "입고예정번호"], buttons: ["조회", "검수"], primary: "검수", primaryZh: "检收", columns: ["번호", "입고센터", "입고예정번호", "오더번호", "오더일자", "입고예정일자", "검수상태", "입고유형", "공급사명"] },
+  AS11: { screen: "[AS11] 입고예정 생성(부자재)", fields: ["입고유형", "문서상태", "오더일자", "오더번호", "입고예정일자", "공급사코드"], buttons: ["조회", "저장", "잔여 오더수량 생성"], primary: "저장", primaryZh: "保存", columns: ["번호", "물류센터", "입고유형", "문서상태명", "오더번호", "오더일자", "입고센터", "공급사명", "오더수량", "입고예정수량", "잔량"] },
+  GR01: { screen: "[GR01] 입고 확정", fields: ["입고유형", "검수상태", "오더일자", "오더번호", "입고예정일자", "입고예정번호"], buttons: ["조회", "입고확정"], primary: "입고확정", primaryZh: "入库确定", columns: ["번호", "입고센터", "입고문서번호", "오더번호", "오더일자", "입고예정일자", "검수상태", "전기일자", "입고유형", "공급사명"] },
+  GR09: { screen: "[GR09] 입고이력 조회", fields: ["입고유형", "오더일자", "오더번호", "전기일자", "입고일자", "입고문서번호"], buttons: ["조회", "입고리스트"], primary: "입고리스트", primaryZh: "入库列表", columns: ["번호", "입고센터", "입고문서번호", "오더번호", "전기일자", "입고일자", "입고유형", "공급사명"] },
+  GR12: { screen: "[GR12] WCS생산입고실적 조정", fields: ["입고일자", "자재번호", "자재명", "팔레트ID", "공급사코드"], buttons: ["조회", "변경 완료"], primary: "변경 완료", primaryZh: "变更完成", columns: ["번호", "입고취소여부", "물류센터", "입고센터", "오더번호", "배치코드", "입고일자", "자재번호", "자재명", "입고수량"] },
+  SD01: { screen: "[SD01] 재고 현황", fields: ["영역", "구역", "로케이션", "자재번호", "자재명", "자재유형"], buttons: ["조회", "상세 확인"], primary: "상세 확인", primaryZh: "查看详情", columns: ["번호", "센터", "물류센터", "자재번호", "자재명", "가용수량", "재고수량", "자재유형명", "단위", "할당수량"] },
+  SD55: { screen: "[SD55] 재고 조회(ALL)", fields: ["물류센터", "자재번호", "자재명", "재고상태"], buttons: ["조회", "상세 확인"], primary: "상세 확인", primaryZh: "查看详情", columns: ["번호", "물류센터", "센터", "자재번호", "자재명", "자재유형명", "재고상태", "단위", "재고수량", "가용수량"] },
+  OM01: { screen: "[OM01] 입고오더 생성", fields: ["입고유형", "입고상태", "오더일자", "오더번호", "자재번호", "공급사코드"], buttons: ["조회", "생성", "삭제"], primary: "생성", primaryZh: "生成", columns: ["번호", "물류센터", "입고유형명", "오더번호", "오더일자", "공급사명", "ASN생성여부"] },
+  OM03: { screen: "[OM03] 출고오더등록(WMS)", fields: ["출고유형", "오더일자", "오더번호", "자재번호", "자재명", "납품처"], buttons: ["조회", "생성", "삭제"], primary: "생성", primaryZh: "生成", columns: ["번호", "물류센터", "출고유형명", "오더번호", "오더일자", "납품처명", "배치코드", "거래선/차수"] },
+};
+
+function simDummyValue(col, i) {
+  if (col === "번호") return String(i + 1);
+  if (col.includes("수량")) return [2030, 1660, 2100, 5400, 3320, 1450][i % 6].toLocaleString();
+  if (col.includes("일자") || col.includes("날짜")) return "2026.11.23";
+  if (col.includes("명")) return ["연습상사", "테스트물산", "연습자재 A", "연습자재 B", "연습상사", "테스트물산"][i % 6];
+  if (col.includes("번호") || col.includes("코드")) return "10020165" + (10 + i);
+  if (col.includes("상태")) return "연습상태";
+  if (col.includes("차량")) return "연습99가000" + (i + 1);
+  if (col.includes("로케이션")) return "A-0" + (i + 1) + "-01";
+  if (col.includes("DOCK") || col.includes("도크")) return "0" + (i + 1);
+  if (col.includes("단위")) return "BOX";
+  if (col.includes("센터")) return "연습센터";
+  if (col.includes("유형") || col.includes("타입")) return "연습유형";
+  if (col.includes("비고")) return "연습 비고";
+  return "연습" + (i + 1);
+}
+
+function GenericSimulator({ lang, item, onBack, notify }) {
+  if (!item) return null;
+  return simConfigs[item.code]
+    ? <GridSimulator lang={lang} item={item} cfg={simConfigs[item.code]} onBack={onBack} notify={notify} />
+    : <StepPractice lang={lang} item={item} onBack={onBack} notify={notify} />;
+}
+
+function GridSimulator({ lang, item, cfg, onBack, notify }) {
+
+  const [loaded, setLoaded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [checked, setChecked] = useState([]);
+  const [completed, setCompleted] = useState([]);
+  const [popup, setPopup] = useState(null);
+  const [acted, setActed] = useState(false);
+
+  const rows = [0, 1, 2, 3, 4, 5].map((i) => ({ id: i + 1, cells: cfg.columns.map((c) => simDummyValue(c, i)) }));
+  const mission = [
+    { ko: "조회 버튼을 눌러 목록을 불러오세요", zh: "点击查询按钮加载列表", done: loaded },
+    { ko: "연습할 행을 체크하세요", zh: "勾选要练习的行", done: checked.length > 0 || completed.length > 0 },
+    { ko: `${cfg.primary} 버튼을 누르세요`, zh: `点击${cfg.primaryZh}按钮`, done: acted || completed.length > 0 },
+    { ko: "확인 팝업에서 \"예\"를 누르세요", zh: "在确认弹窗点击\"예\"", done: completed.length > 0 },
+  ];
+  const allDone = mission.every((m) => m.done);
+
+  const doSearch = () => {
+    setLoading(true);
+    setTimeout(() => { setLoading(false); setLoaded(true); }, 450);
+  };
+  const toggleCheck = (id) => {
+    if (completed.includes(id)) return;
+    setChecked((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+  const doPrimary = () => {
+    if (!loaded) { setPopup({ type: "warn", msg: t(lang, "先点击查询加载列表。", "먼저 조회 버튼을 눌러 목록을 불러오세요.", "Press 조회 first.") }); return; }
+    const active = checked.filter((id) => !completed.includes(id));
+    if (active.length === 0) { setPopup({ type: "warn", msg: t(lang, "没有选中的行。", "선택된 행이 없습니다.", "No row selected.") }); return; }
+    setActed(true);
+    setPopup({ type: "confirm", msg: t(lang, `要对选中的件执行「${cfg.primaryZh}」吗？`, `선택한 건을 ${cfg.primary} 처리하시겠습니까?`, `Run ${cfg.primary} on the selected rows?`) });
+  };
+  const confirmPrimary = () => {
+    const active = checked.filter((id) => !completed.includes(id));
+    setCompleted((prev) => [...prev, ...active]);
+    setChecked([]);
+    setPopup(null);
+    notify(t(lang, "练习处理完成。", "연습 처리가 완료되었습니다.", "Practice done."));
+  };
+  const reset = () => { setLoaded(false); setChecked([]); setCompleted([]); setActed(false); setPopup(null); };
+  const unsupported = () => notify(t(lang, "练习模式下不支持此功能。", "연습 모드에서는 지원하지 않습니다.", "Not supported in practice mode."));
+
+  const gridHead = "border border-slate-300 bg-[#3A4356] px-2 py-1.5 text-left text-[11px] font-bold text-white whitespace-nowrap";
+  const gridCell = "border border-slate-200 px-2 py-1.5 text-[12px] whitespace-nowrap";
+
+  return (
+    <div className="flex min-h-screen flex-col bg-[#EEF1F5]">
+      <div className="flex items-center gap-3 bg-white px-4 py-2.5 shadow-sm">
+        <button onClick={onBack} className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
+          <ArrowLeft size={14} /> {t(lang, "返回门户", "포털로 돌아가기", "Back to Portal")}
+        </button>
+        <span className="text-xs font-bold text-slate-500">{cfg.screen} — {t(lang, "练习模拟器", "연습 시뮬레이터", "Practice Simulator")}</span>
+        <button onClick={reset} className="ml-auto flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
+          <RotateCcw size={13} /> {t(lang, "重置", "초기화", "Reset")}
+        </button>
+      </div>
+
+      <div className="bg-[#232C3D] text-white">
+        <div className="flex items-center gap-4 px-4 py-2.5">
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded text-white" style={{ background: ORANGE }}><Monitor size={15} /></span>
+            <span className="text-base font-black tracking-wide">WMS</span>
+          </div>
+          <span className="rounded-t-md bg-[#EEF1F5] px-3.5 py-1.5 text-xs font-bold text-slate-800">{cfg.screen}</span>
+          <div className="ml-auto flex items-center gap-3 text-xs">
+            <span className="rounded border border-white/25 px-2 py-1">[WH01]{t(lang, "练习中心", "연습센터", "Practice Center")}</span>
+            <span className="flex items-center gap-1.5"><User size={13} /> {t(lang, "练习生", "연습생", "Trainee")}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-4">
+        <div className="rounded-xl bg-white p-4 shadow-sm">
+          <div className="flex flex-wrap items-end gap-3">
+            {cfg.fields.map((f) => (
+              <label key={f} className="flex flex-col gap-1 text-[11px] font-bold text-slate-500">
+                {f}
+                <input className="w-36 rounded border border-slate-300 px-2 py-1.5 text-xs" placeholder={t(lang, "练习输入", "연습 입력", "Practice")} />
+              </label>
+            ))}
+            <div className="ml-auto flex gap-2">
+              {cfg.buttons.map((b) => (
+                <button key={b} onClick={b === "조회" ? doSearch : b === cfg.primary ? doPrimary : unsupported} className="rounded-lg px-3.5 py-2 text-xs font-black text-white transition hover:opacity-90" style={{ background: b === cfg.primary ? ORANGE : "#3A4356" }}>
+                  {b}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_300px]">
+          <div className="overflow-x-auto rounded-xl bg-white p-4 shadow-sm">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className={gridHead}></th>
+                  {cfg.columns.map((c) => <th key={c} className={gridHead}>{c}</th>)}
+                  <th className={gridHead}>{t(lang, "状态", "상태", "Status")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {!loaded ? (
+                  <tr><td colSpan={cfg.columns.length + 2} className="px-2 py-8 text-center text-sm text-slate-400">{loading ? t(lang, "加载中…", "불러오는 중…", "Loading…") : t(lang, "点击查询后显示练习数据。", "조회를 누르면 연습 데이터가 표시됩니다.", "Press 조회 to load practice data.")}</td></tr>
+                ) : rows.map((r) => (
+                  <tr key={r.id} className={completed.includes(r.id) ? "bg-emerald-50" : ""}>
+                    <td className={gridCell}><input type="checkbox" checked={checked.includes(r.id)} disabled={completed.includes(r.id)} onChange={() => toggleCheck(r.id)} /></td>
+                    {r.cells.map((v, ci) => <td key={ci} className={gridCell}>{v}</td>)}
+                    <td className={gridCell}>{completed.includes(r.id) ? <span className="font-bold text-emerald-600">{t(lang, "完成", "완료", "Done")}</span> : ""}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="mt-2 text-right text-[11px] text-slate-400">{loaded ? `${rows.length} Record` : "0 Record"} · {t(lang, "完成", "완료", "Done")} {completed.length} / {rows.length}</p>
+          </div>
+
+          <div className="rounded-xl bg-white p-4 shadow-sm">
+            <h3 className="text-sm font-black text-slate-800">{t(lang, "练习任务", "연습 미션", "Practice Mission")}</h3>
+            <ol className="mt-3 space-y-2.5">
+              {mission.map((m, i) => (
+                <li key={i} className="flex items-start gap-2 text-[13px]">
+                  {m.done ? <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-500" /> : <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[10px] font-black text-slate-600">{i + 1}</span>}
+                  <span className={m.done ? "text-slate-400 line-through" : "font-bold text-slate-700"}>{t(lang, m.zh, m.ko, m.ko)}</span>
+                </li>
+              ))}
+            </ol>
+            {allDone && <p className="mt-4 rounded-lg bg-emerald-50 px-3 py-2 text-center text-sm font-black text-emerald-600">{t(lang, "练习完成！", "연습 완료!", "Practice complete!")}</p>}
+            <div className="mt-4 border-t border-slate-100 pt-3">
+              <p className="text-[11px] font-bold text-slate-400">{t(lang, "SOP 流程", "SOP 절차", "SOP Steps")}</p>
+              <ol className="mt-2 space-y-1.5">
+                {item.steps.map((s, i) => (
+                  <li key={i} className="text-xs text-slate-600"><span className="font-black" style={{ color: ORANGE }}>{String(i + 1).padStart(2, "0")}</span> {t(lang, s.zh, s.ko, s.ko)}</li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {popup && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl">
+            <div className="flex items-start gap-3">
+              <AlertCircle size={20} className={popup.type === "warn" ? "text-amber-500" : "text-orange-500"} />
+              <p className="text-sm font-bold leading-6 text-slate-700">{popup.msg}</p>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              {popup.type === "confirm" ? (
+                <>
+                  <button onClick={() => setPopup(null)} className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600">{t(lang, "否", "아니오", "No")}</button>
+                  <button onClick={confirmPrimary} className="rounded-lg px-4 py-2 text-xs font-black text-white" style={{ background: ORANGE }}>{t(lang, "是", "예", "Yes")}</button>
+                </>
+              ) : (
+                <button onClick={() => setPopup(null)} className="rounded-lg px-4 py-2 text-xs font-black text-white" style={{ background: ORANGE }}>{t(lang, "确认", "확인", "OK")}</button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StepPractice({ lang, item, onBack, notify }) {
+  const [doneCount, setDoneCount] = useState(0);
+  const total = item.steps.length;
+  const allDone = doneCount >= total;
+  const clickStep = (i) => {
+    if (i === doneCount) setDoneCount(doneCount + 1);
+    else if (i > doneCount) notify(t(lang, "请按顺序点击下一步。", "순서대로 다음 단계를 눌러주세요.", "Please click the next step in order."));
+  };
+  return (
+    <div className="flex min-h-screen flex-col bg-[#EEF1F5]">
+      <div className="flex items-center gap-3 bg-white px-4 py-2.5 shadow-sm">
+        <button onClick={onBack} className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
+          <ArrowLeft size={14} /> {t(lang, "返回门户", "포털로 돌아가기", "Back to Portal")}
+        </button>
+        <span className="text-xs font-bold text-slate-500">[{item.code}] {t(lang, item.titleZh, item.titleKo, item.titleKo)} — {t(lang, "流程顺序练习", "절차 순서 연습", "Step Practice")}</span>
+        <button onClick={() => setDoneCount(0)} className="ml-auto flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
+          <RotateCcw size={13} /> {t(lang, "重置", "초기화", "Reset")}
+        </button>
+      </div>
+      <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-6">
+        <div className="rounded-xl bg-amber-50 px-4 py-3 text-[13px] font-bold text-amber-700">
+          {t(lang, "本条目为流程顺序练习，画面模拟器准备中。按顺序点击每一步。", "이 항목은 절차 순서 연습입니다. 화면 시뮬레이터는 준비 중입니다. 순서대로 각 단계를 눌러보세요.", "Step-order practice. Screen simulator in preparation.")}
+        </div>
+        <div className="mt-4 rounded-xl bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-black text-slate-800">{t(lang, "按顺序完成流程", "순서대로 절차 완료하기", "Complete the steps in order")}</h3>
+            <span className="text-xs font-black text-slate-400">{doneCount} / {total}</span>
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-full transition-all" style={{ width: `${total ? (doneCount / total) * 100 : 0}%`, background: ORANGE }} />
+          </div>
+          <ol className="mt-5 space-y-2.5">
+            {item.steps.map((s, i) => {
+              const done = i < doneCount;
+              const next = i === doneCount;
+              return (
+                <li key={i}>
+                  <button onClick={() => clickStep(i)} className={`flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left transition ${done ? "border-emerald-200 bg-emerald-50" : next ? "border-orange-300 bg-orange-50 hover:bg-orange-100" : "border-slate-200 bg-white"}`}>
+                    {done ? <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-emerald-500" /> : <span className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full text-[10px] font-black text-white" style={{ background: next ? ORANGE : "#CBD5E1" }}>{i + 1}</span>}
+                    <span>
+                      <span className={`block text-sm font-black ${done ? "text-slate-400 line-through" : "text-slate-800"}`}>{t(lang, s.zh, s.ko, s.ko)}</span>
+                      <span className="mt-0.5 block text-xs leading-5 text-slate-500">{t(lang, s.dzh, s.dko, s.dko)}</span>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+          {allDone && <p className="mt-5 rounded-lg bg-emerald-50 px-3 py-2.5 text-center text-sm font-black text-emerald-600">{t(lang, "练习完成！", "연습 완료!", "Practice complete!")}</p>}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1437,7 +2288,10 @@ export default function MiryangAutoOpsPortal() {
   const [selected, setSelected] = useState(sopItems.find((x) => x.code === "GR01"));
   const [detailItem, setDetailItem] = useState(null);
   const [view, setView] = useState("portal");
+  const [simItem, setSimItem] = useState(null);
   const [toast, setToast] = useState(null);
+
+  const openSimulator = (item) => { setSimItem(item); setDetailItem(null); setView("simulator"); window.scrollTo(0, 0); };
 
   const notify = (msg) => {
     setToast(msg);
@@ -1474,11 +2328,15 @@ export default function MiryangAutoOpsPortal() {
           selected={selected}
           setSelected={setSelected}
           onOpenDetail={setDetailItem}
-          onOpenSimulator={() => { setDetailItem(null); setView("simulator"); window.scrollTo(0, 0); }}
+          onOpenSimulator={openSimulator}
           notify={notify}
         />
       ) : (
-        <Simulator lang={lang} onBack={() => { setView("portal"); window.scrollTo(0, 0); }} notify={notify} />
+        {simItem && simItem.code === "WDL07" ? (
+          <Simulator lang={lang} onBack={() => { setView("portal"); window.scrollTo(0, 0); }} notify={notify} />
+        ) : (
+          <GenericSimulator lang={lang} item={simItem} onBack={() => { setView("portal"); window.scrollTo(0, 0); }} notify={notify} />
+        )}
       )}
 
       <AnimatePresence>
@@ -1487,7 +2345,7 @@ export default function MiryangAutoOpsPortal() {
             lang={lang}
             item={detailItem}
             onClose={() => setDetailItem(null)}
-            onOpenSimulator={() => { setDetailItem(null); setView("simulator"); window.scrollTo(0, 0); }}
+            onOpenSimulator={openSimulator}
             onSwitchItem={(r) => { setSelected(r); setDetailItem(r); }}
             notify={notify}
           />
