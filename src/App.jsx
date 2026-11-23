@@ -2332,11 +2332,11 @@ export default function MiryangAutoOpsPortal() {
           notify={notify}
         />
       ) : (
-        {simItem && simItem.code === "WDL07" ? (
+        simItem && simItem.code === "WDL07" ? (
           <Simulator lang={lang} onBack={() => { setView("portal"); window.scrollTo(0, 0); }} notify={notify} />
         ) : (
           <GenericSimulator lang={lang} item={simItem} onBack={() => { setView("portal"); window.scrollTo(0, 0); }} notify={notify} />
-        )}
+        )
       )}
 
       <AnimatePresence>
