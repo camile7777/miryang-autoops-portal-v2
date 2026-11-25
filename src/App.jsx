@@ -1121,47 +1121,78 @@ const simRows = [
   { id: 9, vehicle: "광주99바0009", customer: "테스트물산 2차", dock: "22", plan: "2611230009", country: "USA", date: "2026.11.23", dest: "테스트물산 서부창고", img: "Y", order: 5400, alloc: 5400, pick: 5400, inspect: 5400, wave: "20261123-009", orderNo: "1002016509", seq: "010020", driver: "연습기사9", doc: "2000129309", docSeq: "000010", item: "313609" },
 ];
 
+/* Real WMS left menu tree — recorded read-only 2026-11-25 (round-2 learning pass).
+   Replaces the old partial wmsMenu. Structure: 9 top-level groups, subgroups,
+   leaf labels "[CODE] name". Leaves without a code (외부포탈/차량관제) have no sim. */
 const wmsMenu = [
-  { label: "[SD01] 재고 현황" },
-  { label: "[SD55] 재고 현황(ALL)" },
-  { label: "[SD02] 재고 트랜잭션 조회" },
-  { label: "[SD03] 재고 수불 조회" },
-  { label: "[SD04] 할당별 재고 조회" },
-  { label: "[SD05] SAP 재고현황" },
-  { label: "[DS10] 공팔레트 등록" },
-  { label: "재고이동" },
-  { label: "재고조정" },
-  { label: "재고실사" },
   {
-    label: "출고관리(출하)",
-    open: true,
+    label: "즐겨찾기",
     children: [
-      { label: "생산계획" },
-      { label: "출고오더" },
-      {
-        label: "배차",
-        children: [
-          { label: "[WDL01] 배차 계획" },
-          { label: "[WDL02] 배차 등록" },
-          { label: "[WDL98] 배차등록(수출)" },
-          { label: "[WDL03] 배차 확인" },
-          { label: "[WDL88] 납품분할" },
-        ],
-      },
-      { label: "웨이브", children: [{ label: "[WDL04] WAVE 생성" }] },
-      { label: "할당" },
-      {
-        label: "피킹",
-        children: [
-          { label: "[WDL26] 자동창고 피킹관리" },
-          { label: "[WDL16] 피킹관리" },
-          { label: "[WDL77] 피킹검수" },
-        ],
-      },
-      { label: "출고확정" },
-      { label: "[WDL07] 출고완료", active: true },
-      { label: "출고이력" },
+      { label: "[WDL98] 배차등록(수출)", fav: true },
+      { label: "[SD02] 재고 트랜잭션 조회", fav: true },
+      { label: "[WDL16] 피킹관리", fav: true },
     ],
+  },
+  {
+    label: "마스터관리",
+    children: [
+      { label: "구성", children: [{ label: "[MW01] 거점" }, { label: "[MA01] 영역" }, { label: "[MZ01] 구역" }, { label: "[ML01] 로케이션" }] },
+      { label: "파트너", children: [{ label: "[OW01] 화주" }, { label: "[BZ01] 파트너" }] },
+      { label: "SKU", children: [{ label: "[SK01] SKU" }] },
+      { label: "전략규칙", children: [{ label: "[TP01] 적치전략" }, { label: "[TF01] 할당재고 필터링 규칙" }, { label: "[TS01] 할당재고 정렬 규칙" }, { label: "[TA01] 할당전략" }] },
+      { label: "코드", children: [{ label: "[CC01] 공통코드" }, { label: "[RC01] 사유코드" }] },
+      { label: "문서셋팅", children: [{ label: "[DC01] 문서 카테고리" }, { label: "[DT01] 문서 유형" }] },
+    ],
+  },
+  {
+    label: "외부포탈",
+    children: [{ label: "입고예정" }, { label: "운송사" }],
+  },
+  {
+    label: "차량관제",
+    children: [{ label: "차량관제" }],
+  },
+  {
+    label: "입고관리(물류)",
+    children: [
+      { label: "입고오더", children: [{ label: "[AS09] 입고오더 조회(물류)" }, { label: "[SAS01] 입고오더 조회(생산)" }, { label: "[OM01] 입고오더 생성" }] },
+      { label: "입고예정", children: [{ label: "[AS01] 입고예정 생성(완제품)" }, { label: "[AS11] 입고예정 생성(부자재)" }, { label: "[AS02] 입고예정 삭제" }] },
+      { label: "계근정보", children: [{ label: "[RAS31] 계근정보 조회" }] },
+      { label: "입고검수", children: [{ label: "[AS03] 입고검수 입력" }] },
+      { label: "입고확정", children: [{ label: "[GR01] 입고 확정" }] },
+      { label: "입고이력", children: [{ label: "[GR09] 입고이력 조회" }, { label: "[GR10] 입고이력 상세조회" }, { label: "[GR11] WCS 생산입고이력 조회" }, { label: "[GR12] WCS생산입고실적 조정" }, { label: "[RAS27] 계근 이력조회" }] },
+      { label: "적치", children: [{ label: "[PT01] 적치등록" }, { label: "[PT09] 적치이력 조회" }] },
+    ],
+  },
+  {
+    label: "재고관리",
+    children: [
+      { label: "재고조회", children: [{ label: "[SD01] 재고 현황" }, { label: "[SD55] 재고 조회(ALL)" }, { label: "[SD02] 재고 트랜잭션 조회" }, { label: "[SD03] 재고 적재이력 조회" }, { label: "[SD04] 재고 트랜잭션 조회(ALL)" }, { label: "[SD05] 부자재 재고현황 조회" }, { label: "[SD06] 채화재고 현황" }, { label: "[DS10] 재고 조회" }] },
+      { label: "재고이동", children: [{ label: "[MV01] 재고 이동생성" }, { label: "[MV04] 재고 이동실적 조회" }, { label: "[MV14] 로케이션 변경" }, { label: "[MV11] 재고 이동확정" }, { label: "[MV05] 재고 이동실적 조회(ALL)" }, { label: "[MV20] 재고이동생성(WCS)" }, { label: "[MV21] 재고이동확정(WCS)" }, { label: "[MV25] WCS 이력조회" }, { label: "[MV06] 재고 이동생성(생산)" }, { label: "[MV07] 재고 이동실적 조회(생산)" }, { label: "[MV08] 재고 이동확정(생산)" }, { label: "[MV09] 자동창고 출고재고 이동(생산)" }, { label: "[MV10] 자동창고 입고재고 이동(생산)" }] },
+      { label: "재고조정", children: [{ label: "[SJ01] 재고조정(차감)" }, { label: "[SJ02] 재고조정(증가)" }, { label: "[SJ05] 재고상태변경" }, { label: "[SJ06] 재고조정실적 조회" }, { label: "[SJ07] 재고상태변경실적 조회" }, { label: "[SJ09] 재고조정(차감)(생산)" }, { label: "[SJ10] 재고조정(증가)(생산)" }, { label: "[SJ21] 자재상태변경(재고상태변경)" }, { label: "[SJ22] 자재상태변경실적 조회" }, { label: "[RDL23] 로케이션 폐기" }, { label: "[SJ30] 자동창고 부자재 재고실사" }] },
+      { label: "재고실사", children: [{ label: "[IP01] 재고실사 생성" }, { label: "[IP02] 재고실사 조회" }, { label: "[IP04] 재고실사 확정" }, { label: "[IP09] 재고실사 실적조회" }] },
+    ],
+  },
+  {
+    label: "출고관리(물류)",
+    children: [
+      { label: "생산계획", children: [{ label: "[WDL66] MES 생산지시 조회" }, { label: "[WDL67] MES 작업지시 현황" }] },
+      { label: "출고오더", children: [{ label: "[OM03] 출고오더등록(WMS)" }, { label: "[WDL00] 출고오더 조회" }] },
+      { label: "배차", children: [{ label: "[WDL01] 배차 계획" }, { label: "[WDL02] 배차 등록" }, { label: "[WDL98] 배차등록(수출)" }, { label: "[WDL03] 배차 확인" }, { label: "[WDL88] 납품분할" }] },
+      { label: "웨이브", children: [{ label: "[WDL04] WAVE 생성" }] },
+      { label: "할당", children: [{ label: "[WDL05] 할당관리" }] },
+      { label: "피킹", children: [{ label: "[WDL26] 자동창고 피킹관리" }, { label: "[WDL16] 피킹관리" }, { label: "[WDL77] 피킹검수" }] },
+      { label: "출고확정", children: [{ label: "[WDL07] 출고완료" }] },
+      { label: "출고이력", children: [{ label: "[WDL09] 출고내역조회" }, { label: "[WDL19] 출고이력 상세조회" }] },
+    ],
+  },
+  {
+    label: "레포트",
+    children: [{ label: "대시보드 관리" }],
+  },
+  {
+    label: "매뉴얼",
+    children: [{ label: "매뉴얼관리" }],
   },
 ];
 
@@ -1512,90 +1543,1075 @@ function SopDetailModal({ lang, item, onClose, onOpenSimulator, onSwitchItem, no
 }
 
 /* ---------------- WMS simulator: [WDL07] 출고완료 ---------------- */
-function WmsMenuTree({ nodes, depth = 0 }) {
+function menuCodeOf(label) {
+  const m = /\[([A-Z0-9-]+)\]/.exec(label || "");
+  return m ? m[1] : null;
+}
+function menuHasCode(node, code) {
+  if (!code) return false;
+  if (menuCodeOf(node.label) === code) return true;
+  return (node.children || []).some((c) => menuHasCode(c, code));
+}
+
+function WmsMenuTree({ nodes, depth = 0, targetCode, selectedCode, onSelect }) {
+  const [open, setOpen] = useState(() => {
+    const init = {};
+    nodes.forEach((n) => {
+      if (n.children) init[n.label] = !!n.open || menuHasCode(n, targetCode);
+    });
+    return init;
+  });
+  const [removedFav, setRemovedFav] = useState([]);
+  const visible = nodes.filter((n) => !removedFav.includes(n.label));
   return (
     <ul className={depth === 0 ? "space-y-0.5" : "ml-3 space-y-0.5 border-l border-white/10 pl-2"}>
-      {nodes.map((n, i) => (
-        <li key={i}>
-          <div
-            className={`rounded px-2 py-1 text-[12px] leading-5 ${n.active ? "font-black" : n.children ? "font-bold text-slate-200" : "text-slate-400"}`}
-            style={n.active ? { color: ORANGE } : {}}
-          >
-            {n.label}
-          </div>
-          {n.children && <WmsMenuTree nodes={n.children} depth={depth + 1} />}
-        </li>
-      ))}
+      {visible.map((n, i) => {
+        const code = menuCodeOf(n.label);
+        const isTarget = !!code && code === targetCode;
+        const isSelected = !!code && code === selectedCode;
+        if (n.children) {
+          const isOpen = !!open[n.label];
+          return (
+            <li key={i}>
+              <div
+                onClick={() => setOpen((prev) => ({ ...prev, [n.label]: !prev[n.label] }))}
+                className="flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-[12px] font-bold leading-5 text-slate-200 transition hover:bg-white/10"
+              >
+                {isOpen ? <ChevronDown size={12} className="shrink-0 text-slate-400" /> : <ChevronRight size={12} className="shrink-0 text-slate-400" />}
+                <span>{n.label}</span>
+              </div>
+              {isOpen && <WmsMenuTree nodes={n.children} depth={depth + 1} targetCode={targetCode} selectedCode={selectedCode} onSelect={onSelect} />}
+            </li>
+          );
+        }
+        return (
+          <li key={i}>
+            <div
+              onClick={onSelect ? () => onSelect(code, n.label) : undefined}
+              className={`flex items-center justify-between gap-1 rounded px-2 py-1 text-[12px] leading-5 ${isTarget || isSelected ? "font-black" : "text-slate-400"} ${onSelect ? "cursor-pointer transition hover:bg-white/10" : ""}`}
+              style={isTarget || isSelected ? { color: ORANGE, background: "rgba(242,101,34,0.12)" } : {}}
+            >
+              <span>{n.label}</span>
+              {n.fav && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setRemovedFav((prev) => [...prev, n.label]); }}
+                  title="즐겨찾기에서 제거"
+                  className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px] leading-none text-slate-400 transition hover:bg-white/20 hover:text-white"
+                >
+                  −
+                </button>
+              )}
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 }
 
-/* ---------------- generic practice simulator (added 2026-11-24) ---------------- */
-/* Screen layouts observed read-only from WMS; all data below is dummy practice data. */
-const simConfigs = {
-  WDL00: { screen: "[WDL00] 출고오더 조회", fields: ["오더타입", "문서상태", "오더일자", "오더번호", "배차계획번호", "D/N번호"], buttons: ["조회", "저장(비고)", "삭제"], primary: "저장(비고)", primaryZh: "保存（备注）", columns: ["번호", "거래선/차수", "비고", "배차요청일자", "배치코드", "DOCK번호", "차량번호", "WAVE번호", "오더번호", "D/N번호", "출고상태"] },
-  WDL01: { screen: "[WDL01] 배차 계획", fields: ["오더타입", "오더일자", "오더번호", "배차요청일자", "배차계획번호", "D/N번호"], buttons: ["조회", "일괄배차", "합배차", "번호해제"], primary: "일괄배차", primaryZh: "批量派车", columns: ["번호", "거래선/차수", "배치코드", "오더수량", "비고", "오더번호", "D/N번호", "납품처명", "배차계획번호", "운송사", "배차요청일자"] },
-  WDL02: { screen: "[WDL02] 배차 등록", fields: ["오더타입", "오더일자", "오더번호", "배차요청일자", "배차계획번호", "운송사"], buttons: ["조회", "저장", "초기화"], primary: "저장", primaryZh: "保存", columns: ["번호", "배차요청일자", "납품처명", "오더일자", "배차계획번호", "차량번호", "비고", "운송경로", "연락처", "차량기사"] },
-  WDL04: { screen: "[WDL04] WAVE 생성", fields: ["오더타입", "오더일자", "오더번호", "배차요청일자", "배차계획번호", "WAVE번호"], buttons: ["조회", "WAVE생성", "WAVE삭제", "반영"], primary: "WAVE생성", primaryZh: "生成WAVE", columns: ["번호", "DOCK번호", "거래선/차수", "D/N번호", "배치코드", "비고", "자재번호", "오더수량", "WAVE번호", "기본수량", "자재명"] },
-  WDL05: { screen: "[WDL05] 할당관리", fields: ["오더타입", "오더번호", "배차요청일자", "출고상태", "배차계획번호", "WAVE번호"], buttons: ["조회", "할당", "할당취소"], primary: "할당", primaryZh: "分配", columns: ["번호", "DOCK번호", "거래선/차수", "배치코드", "오더수량", "상태", "차량번호", "WAVE번호", "납품처명", "배차계획번호"] },
-  WDL09: { screen: "[WDL09] 출고내역조회", fields: ["출고유형", "배차요청일자", "출고문서번호", "출고일자", "오더번호", "WAVE번호"], buttons: ["조회", "미리보기"], primary: "미리보기", primaryZh: "预览", columns: ["번호", "출고센터", "거래선/차수", "배차계획번호", "차량번호", "WAVE번호", "오더번호", "문서상태명", "배차요청일자", "출고일자", "출고수량"] },
-  WDL16: { screen: "[WDL16] 피킹관리", fields: ["출고유형", "문서상태", "배차요청일자", "출고문서번호", "작업지시번호", "WAVE번호"], buttons: ["조회", "피킹완료", "피킹취소", "피킹지시서"], primary: "피킹완료", primaryZh: "拣货完成", columns: ["번호", "물류센터", "WAVE번호", "작업문서번호", "배차요청일자", "출고유형", "출고상태명", "출고지시수량", "완료수량", "검수수량"] },
-  WDL19: { screen: "[WDL19] 출고이력 상세조회", fields: ["출고유형", "배차요청일자", "출고문서번호", "출고일자", "오더번호", "WAVE번호"], buttons: ["조회", "상세 확인"], primary: "상세 확인", primaryZh: "查看详情", columns: ["번호", "출고센터", "출고타입", "차량번호", "WAVE번호", "거래선/차수", "출고문서번호", "오더번호", "납품처명", "자재번호", "자재명", "출고수량"] },
-  WDL26: { screen: "[WDL26] 자동창고 피킹관리", fields: ["출고유형", "배차요청일자", "출고문서번호", "작업지시번호", "WAVE번호", "WCS 예약여부"], buttons: ["조회", "예약전송", "WCS작업지시", "WCS지시취소"], primary: "WCS작업지시", primaryZh: "WCS作业指示", columns: ["번호", "자재번호", "자재명", "출고지시수량", "From 로케이션", "To 로케이션", "출고대번호", "WCS 예약여부", "WAVE번호", "DOCK번호"] },
-  WDL66: { screen: "[WDL66] MES 생산지시 조회", fields: ["지시일자", "라인코드", "자재번호", "자재명"], buttons: ["조회", "상세 확인"], primary: "상세 확인", primaryZh: "查看详情", columns: ["번호", "생산지시번호", "지시일자", "상태", "라인코드", "라인명", "품번", "품번명", "지시수량", "양품수량", "불량수량", "잔량"] },
-  WDL67: { screen: "[WDL67] MES 작업지시 현황", fields: ["작업일자", "라인코드", "품번"], buttons: ["조회", "상세 확인"], primary: "상세 확인", primaryZh: "查看详情", columns: ["번호", "작업지시번호", "작업일자", "우선순위", "상태", "라인코드", "라인명", "품번", "품번명", "지시수량", "양품수량", "불량수량"] },
-  WDL77: { screen: "[WDL77] 피킹검수", fields: ["출고유형", "배차요청일자", "출고문서번호", "작업지시번호", "오더번호", "WAVE번호"], buttons: ["조회", "피킹지시서", "저장"], primary: "저장", primaryZh: "保存", columns: ["번호", "검수수량", "거래선/차수", "DOCK번호", "WAVE번호", "작업문서번호", "배차계획번호", "배치코드", "차량번호", "출고지시수량", "완료수량"] },
-  WDL98: { screen: "[WDL98] 배차등록(수출)", fields: ["오더타입", "문서상태", "오더일자", "오더번호", "배차요청일자", "운송사"], buttons: ["조회", "저장"], primary: "저장", primaryZh: "保存", columns: ["번호", "컨테이너 규격", "비고", "오더수량", "도크번호", "배치코드", "거래선/차수", "오더번호", "배차번호", "납품처명"] },
-  AS01: { screen: "[AS01] 입고예정 생성(완제품)", fields: ["입고유형", "문서상태", "오더일자", "오더번호", "입고예정일자", "공급사코드"], buttons: ["조회", "저장", "잔여 오더수량 생성"], primary: "저장", primaryZh: "保存", columns: ["번호", "물류센터", "입고유형", "문서상태명", "오더번호", "오더일자", "입고센터", "공급사명", "오더수량", "입고예정수량", "잔량"] },
-  AS02: { screen: "[AS02] 입고예정 삭제", fields: ["입고유형", "입고상태", "오더일자", "오더번호", "입고예정일자", "입고예정번호"], buttons: ["조회", "삭제"], primary: "삭제", primaryZh: "删除", columns: ["번호", "물류센터", "입고예정번호", "오더번호", "오더일자", "입고예정일자", "입고유형명", "입고상태", "공급사명"] },
-  AS03: { screen: "[AS03] 입고검수 입력", fields: ["입고유형", "검수상태", "오더일자", "오더번호", "입고예정일자", "입고예정번호"], buttons: ["조회", "검수"], primary: "검수", primaryZh: "检收", columns: ["번호", "입고센터", "입고예정번호", "오더번호", "오더일자", "입고예정일자", "검수상태", "입고유형", "공급사명"] },
-  AS11: { screen: "[AS11] 입고예정 생성(부자재)", fields: ["입고유형", "문서상태", "오더일자", "오더번호", "입고예정일자", "공급사코드"], buttons: ["조회", "저장", "잔여 오더수량 생성"], primary: "저장", primaryZh: "保存", columns: ["번호", "물류센터", "입고유형", "문서상태명", "오더번호", "오더일자", "입고센터", "공급사명", "오더수량", "입고예정수량", "잔량"] },
-  GR01: { screen: "[GR01] 입고 확정", fields: ["입고유형", "검수상태", "오더일자", "오더번호", "입고예정일자", "입고예정번호"], buttons: ["조회", "입고확정"], primary: "입고확정", primaryZh: "入库确定", columns: ["번호", "입고센터", "입고문서번호", "오더번호", "오더일자", "입고예정일자", "검수상태", "전기일자", "입고유형", "공급사명"] },
-  GR09: { screen: "[GR09] 입고이력 조회", fields: ["입고유형", "오더일자", "오더번호", "전기일자", "입고일자", "입고문서번호"], buttons: ["조회", "입고리스트"], primary: "입고리스트", primaryZh: "入库列表", columns: ["번호", "입고센터", "입고문서번호", "오더번호", "전기일자", "입고일자", "입고유형", "공급사명"] },
-  GR12: { screen: "[GR12] WCS생산입고실적 조정", fields: ["입고일자", "자재번호", "자재명", "팔레트ID", "공급사코드"], buttons: ["조회", "변경 완료"], primary: "변경 완료", primaryZh: "变更完成", columns: ["번호", "입고취소여부", "물류센터", "입고센터", "오더번호", "배치코드", "입고일자", "자재번호", "자재명", "입고수량"] },
-  SD01: { screen: "[SD01] 재고 현황", fields: ["영역", "구역", "로케이션", "자재번호", "자재명", "자재유형"], buttons: ["조회", "상세 확인"], primary: "상세 확인", primaryZh: "查看详情", columns: ["번호", "센터", "물류센터", "자재번호", "자재명", "가용수량", "재고수량", "자재유형명", "단위", "할당수량"] },
-  SD55: { screen: "[SD55] 재고 조회(ALL)", fields: ["물류센터", "자재번호", "자재명", "재고상태"], buttons: ["조회", "상세 확인"], primary: "상세 확인", primaryZh: "查看详情", columns: ["번호", "물류센터", "센터", "자재번호", "자재명", "자재유형명", "재고상태", "단위", "재고수량", "가용수량"] },
-  OM01: { screen: "[OM01] 입고오더 생성", fields: ["입고유형", "입고상태", "오더일자", "오더번호", "자재번호", "공급사코드"], buttons: ["조회", "생성", "삭제"], primary: "생성", primaryZh: "生成", columns: ["번호", "물류센터", "입고유형명", "오더번호", "오더일자", "공급사명", "ASN생성여부"] },
-  OM03: { screen: "[OM03] 출고오더등록(WMS)", fields: ["출고유형", "오더일자", "오더번호", "자재번호", "자재명", "납품처"], buttons: ["조회", "생성", "삭제"], primary: "생성", primaryZh: "生成", columns: ["번호", "물류센터", "출고유형명", "오더번호", "오더일자", "납품처명", "배치코드", "거래선/차수"] },
+/* ---------------- generic practice simulator v2 (2026-11-25) ---------------- */
+/* Screen layouts observed read-only from WMS (round-2 learning pass, 조회 only);
+   all data below is dummy practice data. 24 WMS screens use the shared WMS shell
+   (GridSimulator); SAP/RPK/WCS/ASEA/ETC/ERR/OP items use StepPractice. */
+// Simulator configs for 13 OUTBOUND WMS screens (structure only; dummy values generated elsewhere).
+// Known gap: WDL98's 송/수신 정보 sub-tabs (작업지시서 / 배차지시서) are NOT modeled here.
+const simCfgOutbound = {
+  WDL00: {
+    screen: "[WDL00] 출고오더 조회",
+    menuPath: ["출고관리(물류)", "출고오더", "[WDL00] 출고오더 조회"],
+    tabs: ["출고예정 헤더", "출고예정 아이템"],
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "오더타입", type: "text", ph: "All" },
+        { label: "문서상태", type: "radio", options: ["전체", "미작업", "WAVE생성", "부분할당", "할당완료", "부분피킹", "피킹완료", "검수완료", "출고완료"], def: "전체" },
+        { label: "오더일자", type: "daterange", def: "month" },
+        { label: "오더번호", type: "text" },
+        { label: "목표출고일자", type: "date" },
+        { label: "배차계획번호", type: "text" },
+        { label: "배차요청일자", type: "date" },
+        { label: "배차계획번호생성여부", type: "radio", options: ["전체", "Y", "N"], def: "전체" },
+        { label: "D/N번호", type: "text" },
+        { label: "WAVE번호", type: "text" },
+        { label: "영업그룹코드", type: "text" },
+        { label: "출고완료 숨김", type: "checkbox", def: true }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }] },
+      { group: "LOT정보", fields: [{ label: "배치코드", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "납품처", type: "text" }, { label: "납품처명", type: "text" }] }
+    ],
+    extra: null,
+    buttons: ["조회", "0출고완료", "저장(비고)"],
+    primary: "저장(비고)", primaryZh: "保存（备注）",
+    columns: ["번호", "거래선/차수", "비고", "배차요청일자", "배치코드", "목표출고일자", "DOCK번호", "차량번호", "주문유형", "WAVE번호", "오더일자", "납품처명", "오더번호", "출고상태", "기본수량"],
+    detailColumns: ["번호", "오더번호", "오더순번", "자재번호", "자재명", "기본수량", "요청수량", "할당수량", "검수수량", "출고수량", "잔여수량", "배치코드"],
+    detailButtons: ["0출고완료", "삭제"],
+    totalRows: 533, detailRows: 1,
+    qtyCheck: null, rowSelects: null, requires: null
+  },
+  WDL01: {
+    screen: "[WDL01] 배차 계획",
+    menuPath: ["출고관리(물류)", "배차", "[WDL01] 배차 계획"],
+    tabs: ["리스트", "상세리스트"],
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "오더타입", type: "text", ph: "All" },
+        { label: "오더일자", type: "daterange", def: "day" },
+        { label: "오더번호", type: "text" },
+        { label: "오더카테고리", type: "text" },
+        { label: "목표출고일자", type: "date" },
+        { label: "배차요청일자", type: "date" },
+        { label: "배차계획번호", type: "text" },
+        { label: "D/N번호", type: "text" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "납품처", type: "text" }, { label: "납품처명", type: "text" }] }
+    ],
+    extra: [{ kind: "dispatch", button: "반영", fields: [
+      { label: "운송사", type: "text" },
+      { label: "배차요청일자", type: "date" },
+      { label: "차량유형", type: "select", options: ["[01]용차(5톤)", "[02]용차(8톤)", "[03]용차(11톤)", "[04]직영(5톤)", "[05]직영(8톤)", "[06]직영(11톤)", "[07]컨테이너(20FT)", "[08]컨테이너(40FT)", "[09]컨테이너(20FT Reefer)", "[10]컨테이너(40FT Reefer)", "[11]컨테이너(20FT Reefer(전원))", "[12]컨테이너(40FT Reefer(전원))", "[13]용차(2.5톤)", "[14]용차(1톤)", "[15]용차(15톤)", "[16]용차(25톤)", "[17]직영(15톤)", "[18]직영(2.5톤)", "[19]직영(1톤)", "[20]직영(25톤)", "[21]컨테이너(40FT Reefer)"], def: "[01]용차(5톤)" },
+      { label: "DOCK번호", type: "select", options: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "A", "B", "C", "D", "E", "S_SB", "SB"] },
+      { label: "비고", type: "text" }
+    ]}],
+    buttons: ["조회", "일괄배차", "합배차", "번호해제"],
+    primary: "일괄배차", primaryZh: "批量配车",
+    columns: ["번호", "거래선/차수", "배치코드", "오더수량", "비고", "오더번호", "D/N번호", "납품처명", "배차계획번호", "운송사", "배차요청일자", "DOCK번호", "차량번호", "차량기사", "오더일자"],
+    detailColumns: ["번호", "오더번호", "오더순번", "D/N번호", "자재번호", "자재명", "기본수량", "오더수량", "팔레트수량", "박스수", "CBM", "배치코드"],
+    detailButtons: [],
+    totalRows: 73, detailRows: 1,
+    qtyCheck: null, rowSelects: null,
+    requires: [
+      { field: "차량유형", msgKo: "차량유형을 선택하세요", msgZh: "请先选择车辆类型" },
+      { field: "DOCK번호", msgKo: "DOCK번호를 선택하세요", msgZh: "请先选择DOCK编号" }
+    ]
+  },
+  WDL02: {
+    screen: "[WDL02] 배차 등록",
+    menuPath: ["출고관리(물류)", "배차", "[WDL02] 배차 등록"],
+    tabs: ["출고예정 헤더", "아이템 리스트"],
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "오더타입", type: "text", ph: "All" },
+        { label: "오더일자", type: "date" },
+        { label: "오더번호", type: "text" },
+        { label: "배차요청일자", type: "date" },
+        { label: "배차계획번호", type: "text" },
+        { label: "운송사", type: "text" },
+        { label: "D/N번호", type: "text" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "납품처", type: "text" }, { label: "납품처명", type: "text" }] }
+    ],
+    extra: [
+      { kind: "vehicle", button: "반영", fields: [{ label: "차량번호", type: "text" }, { label: "차량기사", type: "text" }, { label: "연락처", type: "text" }] },
+      { kind: "checks", options: ["고객용", "인수용", "운임청구용"], def: true }
+    ],
+    buttons: ["조회", "저장", "초기화", "거래명세서(발송처용)", "거래명세서"],
+    primary: "저장", primaryZh: "保存",
+    columns: ["번호", "배차요청일자", "납품처명", "오더일자", "배차계획번호", "출고센터", "차량번호", "비고", "운송경로", "연락처", "차량기사", "물류센터", "문서상태명", "납품처"],
+    detailColumns: ["번호", "물류센터", "오더일자", "배차요청일자", "납품처명", "오더번호", "차량번호", "차량기사", "연락처", "팔레트수량", "총중량"],
+    detailButtons: [],
+    totalRows: 14, detailRows: 2,
+    qtyCheck: null, rowSelects: null,
+    requires: [
+      { field: "차량번호", msgKo: "차량번호를 입력하세요", msgZh: "请先输入车牌号" },
+      { field: "차량기사", msgKo: "차량기사를 입력하세요", msgZh: "请先输入司机姓名" }
+    ]
+  },
+  WDL04: {
+    screen: "[WDL04] WAVE 생성",
+    menuPath: ["출고관리(물류)", "웨이브", "[WDL04] WAVE 생성"],
+    tabs: ["리스트"],
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "오더타입", type: "text", ph: "All" },
+        { label: "오더일자", type: "date" },
+        { label: "오더번호", type: "text" },
+        { label: "배차요청일자", type: "date" },
+        { label: "배차계획번호", type: "text" },
+        { label: "D/N번호", type: "text" },
+        { label: "WAVE번호", type: "text" },
+        { label: "WAVE생성여부", type: "radio", options: ["전체", "Y", "N"], def: "전체" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "판매처", type: "text" }, { label: "납품처", type: "text" }, { label: "납품처명", type: "text" }] }
+    ],
+    extra: [{ kind: "dock", label: "DOCK번호", options: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "A", "B", "C", "D", "E", "S_SB", "SB"], button: "반영" }],
+    buttons: ["조회", "WAVE생성", "WAVE삭제"],
+    primary: "WAVE생성", primaryZh: "生成WAVE",
+    columns: ["번호", "DOCK번호", "거래선/차수", "D/N번호", "배치코드", "비고", "출고센터", "자재번호", "오더수량", "WAVE번호", "기본수량", "자재명", "차량번호", "오더일자", "배차요청일자"],
+    detailColumns: [],
+    detailButtons: [],
+    totalRows: 108, detailRows: null,
+    qtyCheck: null, rowSelects: null,
+    requires: [{ field: "DOCK번호", msgKo: "DOCK번호를 선택하세요", msgZh: "请先选择DOCK编号" }]
+  },
+  WDL05: {
+    screen: "[WDL05] 할당관리",
+    menuPath: ["출고관리(물류)", "할당", "[WDL05] 할당관리"],
+    tabs: ["리스트", "상세리스트"],
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "오더타입", type: "text", ph: "All" },
+        { label: "오더번호", type: "text" },
+        { label: "배차요청일자", type: "date" },
+        { label: "출고상태", type: "text", ph: "All" },
+        { label: "배차계획번호", type: "text" },
+        { label: "D/N번호", type: "text" },
+        { label: "WAVE번호", type: "text" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "판매처", type: "text" }, { label: "납품처", type: "text" }, { label: "납품처명", type: "text" }] }
+    ],
+    extra: [{ kind: "select", label: "타센터 포함여부", options: ["포함", "미포함"], def: "포함" }],
+    buttons: ["조회", "할당", "할당취소"],
+    primary: "할당", primaryZh: "分配",
+    columns: ["번호", "DOCK번호", "거래선/차수", "배치코드", "오더수량", "출고센터", "상태", "차량번호", "WAVE번호", "납품처명", "배차계획번호", "2센터 할당수량", "1센터 할당수량", "물류센터", "화주"],
+    detailColumns: ["번호", "출고대번호", "자재번호", "자재명", "WAVE번호", "오더순번", "상태명", "미할당수량", "할당수량", "오더단위", "오더수량", "오더번호"],
+    detailButtons: ["부분할당", "부분할당취소", "저장", "반영"],
+    totalRows: 22, detailRows: 2,
+    qtyCheck: null,
+    rowSelects: { "출고센터": ["[P1]1센터", "[P2]2센터"] },
+    requires: [{ field: "출고센터", scope: "row", msgKo: "선택한 행의 출고센터를 지정하세요", msgZh: "请先为选中的行指定出库中心" }]
+  },
+  WDL09: {
+    screen: "[WDL09] 출고내역조회",
+    menuPath: ["출고관리(물류)", "출고이력", "[WDL09] 출고내역조회"],
+    tabs: ["문서정보", "아이템 리스트"],
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "출고센터", type: "center", options: ["전체", "[P1]1센터", "[P2]2센터"], def: "전체" },
+        { label: "출고유형", type: "text", ph: "All" },
+        { label: "배차요청일자", type: "date" },
+        { label: "출고문서번호", type: "text" },
+        { label: "출고일자", type: "date" },
+        { label: "전기일자", type: "daterange", def: "startOnly" },
+        { label: "오더번호", type: "text" },
+        { label: "D/N번호", type: "text" },
+        { label: "배차계획번호", type: "text" },
+        { label: "WAVE번호", type: "text" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }, { label: "자재유형", type: "text" }] },
+      { group: "LOT정보", fields: [{ label: "배치코드", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "납품처", type: "text" }, { label: "납품처명", type: "text" }, { label: "판매처", type: "text" }, { label: "판매처명", type: "text" }] }
+    ],
+    extra: [{ kind: "checks", options: ["고객용", "인수용", "운임청구용"], def: true }],
+    buttons: ["조회", "미리보기", "사진추가", "거래명세서(발송처용)", "거래명세서"],
+    primary: "미리보기", primaryZh: "预览",
+    columns: ["번호", "출고센터", "거래선/차수", "배차계획번호", "차량번호", "차량기사", "WAVE번호", "오더번호", "문서상태", "배차요청일자", "출고일자", "전기일자", "납품처명", "원오더수량", "출고수량"],
+    detailColumns: ["번호", "배차계획번호", "차량번호", "WAVE번호", "출고문서번호", "오더번호", "자재번호", "자재명", "원오더수량", "할당수량", "피킹수량", "검수수량", "출고수량"],
+    detailButtons: [],
+    totalRows: 0, detailRows: 0,
+    qtyCheck: null, rowSelects: null, requires: null
+  },
+  WDL16: {
+    screen: "[WDL16] 피킹관리",
+    menuPath: ["출고관리(물류)", "피킹", "[WDL16] 피킹관리"],
+    tabs: ["리스트", "상세리스트"],
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "From 로케이션", type: "text" },
+        { label: "출고유형", type: "text", ph: "All" },
+        { label: "문서상태", type: "radio", options: ["전체", "미작업", "부분피킹", "피킹완료"], def: "전체" },
+        { label: "배차요청일자", type: "date" },
+        { label: "출고문서번호", type: "text" },
+        { label: "출고상태", type: "text", ph: "All" },
+        { label: "작업지시번호", type: "text" },
+        { label: "오더번호", type: "text" },
+        { label: "D/N번호", type: "text" },
+        { label: "배차계획번호", type: "text" },
+        { label: "WAVE번호", type: "text" },
+        { label: "출고완료여부", type: "checkbox", def: false }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }, { label: "팔레트ID", type: "text" }] },
+      { group: "LOT정보", fields: [{ label: "배치코드", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "배송처코드", type: "text" }, { label: "배송처명", type: "text" }] }
+    ],
+    extra: null,
+    buttons: ["조회", "피킹완료", "피킹취소", "피킹지시서", "수출출고피킹지시서"],
+    primary: "피킹완료", primaryZh: "拣货完成",
+    columns: ["번호", "물류센터", "WAVE번호", "작업문서번호", "배차요청일자", "출고유형", "출고상태", "출고지시수량", "완료수량", "검수수량", "배차계획번호", "거래선/차수", "납품처명", "차량번호", "DOCK번호"],
+    detailColumns: ["번호", "From 로케이션", "To 로케이션", "WCS작업요청일자", "자재번호", "자재명", "출고지시수량", "출고상태", "팔레트ID", "완료수량", "검수수량", "배치코드"],
+    detailButtons: ["예약전송", "부분피킹완료", "부분피킹취소", "WCS작업지시", "WCS지시취소", "반영"],
+    totalRows: 21, detailRows: 16,
+    qtyCheck: { order: "출고지시수량", check: "완료수량" },
+    rowSelects: null, requires: null
+  },
+  WDL19: {
+    screen: "[WDL19] 출고이력 상세조회",
+    menuPath: ["출고관리(물류)", "출고이력", "[WDL19] 출고이력 상세조회"],
+    tabs: ["문서정보"],
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "출고센터", type: "center", options: ["전체", "[P1]1센터", "[P2]2센터"], def: "전체" },
+        { label: "출고유형", type: "text", ph: "All" },
+        { label: "배차요청일자", type: "date" },
+        { label: "출고문서번호", type: "text" },
+        { label: "출고일자", type: "date" },
+        { label: "출고시간", type: "text", ph: "HH:MM" },
+        { label: "전기일자", type: "daterange", def: "startOnly" },
+        { label: "오더번호", type: "text" },
+        { label: "D/N번호", type: "text" },
+        { label: "배차계획번호", type: "text" },
+        { label: "WAVE번호", type: "text" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }, { label: "자재유형", type: "text" }, { label: "제품유형", type: "text" }] },
+      { group: "LOT정보", fields: [{ label: "배치코드", type: "text" }, { label: "제조일자", type: "date" }] },
+      { group: "거래처정보", fields: [{ label: "납품처", type: "text" }, { label: "납품처명", type: "text" }, { label: "판매처", type: "text" }, { label: "판매처명", type: "text" }] }
+    ],
+    extra: null,
+    buttons: ["조회"],
+    primary: "상세 확인", primaryZh: "查看详情",
+    columns: ["번호", "출고센터", "차량번호", "WAVE번호", "출고문서번호", "오더번호", "납품처명", "출고일자", "자재번호", "자재명", "원오더수량", "할당수량", "피킹수량", "검수수량", "출고수량"],
+    detailColumns: [],
+    detailButtons: [],
+    totalRows: 0, detailRows: null,
+    qtyCheck: null, rowSelects: null, requires: null
+  },
+  WDL26: {
+    screen: "[WDL26] 자동창고 피킹관리",
+    menuPath: ["출고관리(물류)", "피킹", "[WDL26] 자동창고 피킹관리"],
+    tabs: ["리스트"],
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "센터", type: "center", options: ["전체", "1센터", "2센터"], def: "전체" },
+        { label: "영역", type: "text" },
+        { label: "구역", type: "text" },
+        { label: "From 로케이션", type: "text" },
+        { label: "출고유형", type: "text", ph: "All" },
+        { label: "배차요청일자", type: "date" },
+        { label: "출고문서번호", type: "text" },
+        { label: "작업지시번호", type: "text" },
+        { label: "오더번호", type: "text" },
+        { label: "D/N번호", type: "text" },
+        { label: "WAVE번호", type: "text" },
+        { label: "WCS 예약여부", type: "radio", options: ["전체", "예약전", "예약완료"], def: "전체" },
+        { label: "WCS 전송여부", type: "radio", options: ["전체", "미전송", "전송완료"], def: "전체" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }, { label: "팔레트ID", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "배송처코드", type: "text" }, { label: "배송처명", type: "text" }] }
+    ],
+    extra: [
+      { kind: "dock", label: "DOCK번호", options: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "A", "B", "C", "D", "E", "S_SB", "SB"], button: "반영" },
+      { kind: "wcs", button: "반영", fields: [{ label: "WCS작업요청일자", type: "date" }, { label: "WCS작업요청시간", type: "text", ph: "HH:MM" }] }
+    ],
+    buttons: ["조회", "예약전송", "예약취소", "WCS작업지시", "WCS지시취소"],
+    primary: "WCS작업지시", primaryZh: "下达WCS作业指示",
+    columns: ["번호", "자재번호", "자재명", "출고지시수량", "From 로케이션", "To 로케이션", "출고대번호", "WCS 예약여부", "WCS작업요청일자", "WCS 전송여부", "WAVE번호", "DOCK번호", "팔레트ID", "센터", "작업문서번호"],
+    detailColumns: [],
+    detailButtons: [],
+    totalRows: 233, detailRows: null,
+    qtyCheck: null, rowSelects: null,
+    requires: [{ field: "WCS작업요청일자", msgKo: "WCS작업요청일자를 입력하세요", msgZh: "请先输入WCS作业请求日期" }]
+  },
+  WDL66: {
+    screen: "[WDL66] MES 생산지시 조회",
+    menuPath: ["출고관리(물류)", "생산계획", "[WDL66] MES 생산지시 조회"],
+    tabs: ["리스트"],
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "지시일자", type: "date" },
+        { label: "라인코드", type: "text" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }] }
+    ],
+    extra: null,
+    buttons: ["조회"],
+    primary: "상세 확인", primaryZh: "查看详情",
+    columns: ["번호", "생산지시번호", "지시일자", "일련번호", "시리얼번호", "상태", "라인코드", "라인명", "품번", "품번명", "지시수량", "양품수량", "불량수량", "잔량"],
+    detailColumns: [],
+    detailButtons: [],
+    totalRows: 175, detailRows: null,
+    qtyCheck: null, rowSelects: null, requires: null
+  },
+  WDL67: {
+    screen: "[WDL67] MES 작업지시 현황",
+    menuPath: ["출고관리(물류)", "생산계획", "[WDL67] MES 작업지시 현황"],
+    tabs: ["문서정보", "아이템 리스트"],
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "작업일자", type: "daterange", def: "startOnly" },
+        { label: "라인코드", type: "text" }
+      ]},
+      { group: "품목정보", fields: [{ label: "품번", type: "text" }] }
+    ],
+    extra: null,
+    buttons: ["조회"],
+    primary: "상세 확인", primaryZh: "查看详情",
+    columns: ["번호", "작업지시번호", "작업일자", "우선순위", "상태", "라인코드", "라인명", "품번", "품번명", "단위", "지시수량", "양품수량", "불량수량"],
+    detailColumns: ["번호", "작업지시번호", "생산지시번호", "지시일자", "시리얼번호", "일련번호", "품번", "품번명", "단위", "지시수량", "양품수량", "실적수량", "잔량"],
+    detailButtons: [],
+    totalRows: 101, detailRows: 13,
+    qtyCheck: null, rowSelects: null, requires: null
+  },
+  WDL77: {
+    screen: "[WDL77] 피킹검수",
+    menuPath: ["출고관리(물류)", "피킹", "[WDL77] 피킹검수"],
+    tabs: ["리스트", "상세리스트"],
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "From 로케이션", type: "text" },
+        { label: "출고유형", type: "text", ph: "All" },
+        { label: "배차요청일자", type: "date" },
+        { label: "출고문서번호", type: "text" },
+        { label: "출고상태", type: "text", ph: "All" },
+        { label: "작업지시번호", type: "text" },
+        { label: "오더번호", type: "text" },
+        { label: "D/N번호", type: "text" },
+        { label: "배차계획번호", type: "text" },
+        { label: "WAVE번호", type: "text" },
+        { label: "WAVE유형", type: "radio", options: ["오더별", "총량"], def: "오더별" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }] },
+      { group: "LOT정보", fields: [{ label: "배치코드", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "배송처코드", type: "text" }, { label: "배송처명", type: "text" }] }
+    ],
+    extra: null,
+    buttons: ["조회", "피킹지시서"],
+    primary: "저장", primaryZh: "保存",
+    columns: ["번호", "검수수량", "거래선/차수", "DOCK번호", "물류센터", "WAVE번호", "작업문서번호", "배차계획번호", "차량번호", "배차요청일자", "출고유형", "출고상태", "납품처명", "출고지시수량", "완료수량"],
+    detailColumns: ["번호", "제조일자", "유통기한", "From 로케이션", "To 로케이션", "할당수량", "완료수량", "검수수량", "배차계획번호", "차량번호", "자재번호", "자재명", "검수자"],
+    detailButtons: ["저장", "초기화"],
+    totalRows: 16, detailRows: 13,
+    qtyCheck: { order: "완료수량", check: "검수수량" },
+    rowSelects: null, requires: null
+  },
+  WDL98: {
+    screen: "[WDL98] 배차등록(수출)",
+    menuPath: ["출고관리(물류)", "배차", "[WDL98] 배차등록(수출)"],
+    tabs: ["수출 배차등록"],
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "오더타입", type: "text", ph: "수출 출고" },
+        { label: "문서상태", type: "radio", options: ["전체", "배차확정"], def: "배차확정" },
+        { label: "오더일자", type: "date" },
+        { label: "오더번호", type: "text" },
+        { label: "배차요청일자", type: "date" },
+        { label: "운송사", type: "text" },
+        { label: "영업그룹코드", type: "text" }
+      ]},
+      { group: "거래처정보", fields: [{ label: "납품처", type: "text" }, { label: "납품처명", type: "text" }] }
+    ],
+    extra: [{ kind: "checks", options: ["고객용", "인수용", "운임청구용"], def: true }],
+    buttons: ["조회", "저장", "거래명세서(발송처용)", "거래명세서"],
+    primary: "저장", primaryZh: "保存",
+    columns: ["번호", "컨테이너 규격", "비고", "오더수량", "도크번호", "배치코드", "거래선/차수", "오더번호", "출고센터", "주문등록일자", "목표출고일자", "출하가능일자", "배차번호", "납품처명", "중량(KG)"],
+    detailColumns: [],
+    detailButtons: [],
+    totalRows: null, detailRows: null,
+    qtyCheck: null, rowSelects: null, requires: null
+  }
 };
 
+const simCfgInbound = {
+  AS01: {
+    screen: "[AS01] 입고예정 생성(완제품)",
+    menuPath: ["입고관리(물류)", "입고예정", "[AS01] 입고예정 생성(완제품)"],
+    tabs: ["문서정보", "아이템 리스트", "Dock 스케줄"],
+    // Dock 스케줄 tab was NOT expanded in the report — shell shows it as a placeholder tab.
+    // Per-row 입고센터 dropdown ([P1]1센터/[P2]2센터) also exists in the main grid; the search-level choice above is the optional one (default blank).
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "입고센터", type: "center", options: ["", "[P1]1센터", "[P2]2센터"], def: "" },
+        { label: "입고유형", type: "text", ph: "All" },
+        { label: "문서상태", type: "radio", options: ["전체", "미작업", "분할입고", "입고완료"], def: "전체" },
+        { label: "오더일자", type: "daterange", def: "month" },
+        { label: "오더번호", type: "text" },
+        { label: "입고예정일자", type: "date" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }] },
+      { group: "LOT정보", fields: [{ label: "플랜트", type: "text" }, { label: "저장위치", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "공급사코드", type: "text" }, { label: "공급사명", type: "text" }] }
+    ],
+    extra: [
+      { kind: "inputs", button: "반영", fields: [{ label: "입고예정일자", type: "date" }, { label: "제조일자", type: "date" }, { label: "유통기한", type: "date" }, { label: "차량번호", type: "text" }, { label: "차량기사", type: "text" }, { label: "기사연락처", type: "text" }] }
+    ],
+    buttons: ["조회", "저장", "잔여 오더수량 생성", "입고예정리스트 출력"],
+    primary: "저장", primaryZh: "保存",
+    columns: ["번호", "물류센터", "입고유형", "문서상태명", "오더번호", "오더일자", "입고센터", "공급사명", "오더수량", "입고예정수량", "잔량"],
+    detailColumns: ["번호", "차량기사", "차량번호", "입고예정일자", "자재번호", "자재명", "팔레트바코드", "오더번호", "오더수량", "입고예정수량", "기입고수량", "제조일자"],
+    detailButtons: ["팔레트라벨 생성", "팔레트라벨 출력", "A4출력", "반영"],
+    totalRows: 55, detailRows: 18,
+    qtyCheck: null, rowSelects: null, requires: null
+  },
+  AS02: {
+    screen: "[AS02] 입고예정 삭제",
+    menuPath: ["입고관리(물류)", "입고예정", "[AS02] 입고예정 삭제"],
+    tabs: ["문서정보", "아이템 리스트"],
+    // Ambiguity: report gives no default for 오더일자 here; assumed 당월 daterange like AS01.
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "입고유형", type: "text", ph: "All" },
+        { label: "입고상태", type: "select", options: ["All", "[00]미작업", "[10]분할입고", "[20]입고완료"], def: "All" },
+        { label: "오더일자", type: "daterange", def: "month" },
+        { label: "오더번호", type: "text" },
+        { label: "입고예정일자", type: "daterange", def: "startOnly" },
+        { label: "입고예정번호", type: "text" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "공급사코드", type: "text" }, { label: "공급사명", type: "text" }] }
+    ],
+    extra: null,
+    buttons: ["조회", "삭제", "입고예정리스트 출력"],
+    primary: "삭제", primaryZh: "删除",
+    columns: ["번호", "물류센터", "입고예정번호", "오더번호", "오더일자", "입고예정일자", "입고유형", "입고상태", "공급사코드", "공급사명", "생성일자"],
+    detailColumns: ["번호", "입고예정번호", "오더번호", "자재번호", "자재명", "오더수량", "입고예정수량", "검수수량", "입고수량", "제조일자", "팔레트바코드", "차량번호"],
+    detailButtons: ["삭제", "팔레트라벨 출력", "팔레트라벨(6분할) 출력"],
+    totalRows: 57, detailRows: 1,
+    qtyCheck: null, rowSelects: null, requires: null
+  },
+  AS03: {
+    screen: "[AS03] 입고검수 입력",
+    menuPath: ["입고관리(물류)", "입고검수", "[AS03] 입고검수 입력"],
+    tabs: ["문서정보", "아이템 리스트"],
+    // Ambiguity: report gives no default for 오더일자 here; assumed 당월 daterange like AS01.
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "입고센터", type: "center", options: ["전체", "[P1]1센터", "[P2]2센터"], def: "전체" },
+        { label: "입고유형", type: "text", ph: "All" },
+        { label: "검수상태", type: "radio", options: ["전체", "미검수", "검수중", "검수완료"], def: "전체" },
+        { label: "오더일자", type: "daterange", def: "month" },
+        { label: "오더번호", type: "text" },
+        { label: "입고예정일자", type: "daterange", def: "startOnly" },
+        { label: "입고예정번호", type: "text" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }, { label: "자재유형", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "공급사코드", type: "text" }, { label: "공급사명", type: "text" }] }
+    ],
+    extra: null,
+    buttons: ["조회", "검수"],
+    primary: "검수", primaryZh: "检收",
+    columns: ["번호", "입고센터", "입고예정번호", "오더번호", "물류센터", "오더일자", "입고예정일자", "검수상태", "입고일자", "입고유형", "공급사코드", "공급사명"],
+    detailColumns: ["번호", "입고예정번호", "오더번호", "자재번호", "자재명", "검수상태", "오더수량", "입고예정수량", "검수수량", "제조일자", "팔레트바코드", "차량번호"],
+    detailButtons: [],
+    totalRows: 57, detailRows: 1,
+    qtyCheck: { order: "입고예정수량", check: "검수수량" }, rowSelects: null, requires: null
+  },
+  AS11: {
+    screen: "[AS11] 입고예정 생성(부자재)",
+    menuPath: ["입고관리(물류)", "입고예정", "[AS11] 입고예정 생성(부자재)"],
+    tabs: ["문서정보", "아이템 리스트", "Dock 스케줄"],
+    // Dock 스케줄 tab was NOT expanded in the report — shell shows it as a placeholder tab.
+    // Per-row 입고센터 dropdown ([P1]1센터/[P2]2센터) also exists in the main grid; the search-level choice above is the optional one (default blank).
+    // Detail grid differs from AS01: no 유통기한 column, 배치코드 appears later in the column order.
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "입고센터", type: "center", options: ["", "[P1]1센터", "[P2]2센터"], def: "" },
+        { label: "입고유형", type: "text", ph: "All" },
+        { label: "문서상태", type: "radio", options: ["전체", "미작업", "분할입고", "입고완료"], def: "전체" },
+        { label: "오더일자", type: "daterange", def: "month" },
+        { label: "오더번호", type: "text" },
+        { label: "입고예정일자", type: "date" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }] },
+      { group: "LOT정보", fields: [{ label: "플랜트", type: "text" }, { label: "저장위치", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "공급사코드", type: "text" }, { label: "공급사명", type: "text" }] }
+    ],
+    extra: [
+      { kind: "inputs", button: "반영", fields: [{ label: "입고예정일자", type: "date" }, { label: "제조일자", type: "date" }, { label: "유통기한", type: "date" }, { label: "차량번호", type: "text" }, { label: "차량기사", type: "text" }, { label: "기사연락처", type: "text" }] }
+    ],
+    buttons: ["조회", "저장", "잔여 오더수량 생성", "입고예정리스트 출력"],
+    primary: "저장", primaryZh: "保存",
+    columns: ["번호", "물류센터", "입고유형", "문서상태명", "오더번호", "오더일자", "입고센터", "공급사명", "오더수량", "입고예정수량", "잔량"],
+    detailColumns: ["번호", "차량번호", "차량기사", "기사연락처", "자재번호", "자재명", "제조일자", "팔레트바코드", "오더번호", "오더수량", "입고예정수량", "기입고수량"],
+    detailButtons: ["팔레트라벨 생성", "팔레트라벨 출력", "A4출력", "반영"],
+    totalRows: 165, detailRows: 1,
+    qtyCheck: null, rowSelects: null, requires: null
+  },
+  GR01: {
+    screen: "[GR01] 입고 확정",
+    menuPath: ["입고관리(물류)", "입고확정", "[GR01] 입고 확정"],
+    tabs: ["문서정보", "아이템 리스트"],
+    // Ambiguity: report gives no default for 오더일자 here; assumed 당월 daterange like AS01.
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "입고센터", type: "center", options: ["전체", "[P1]1센터", "[P2]2센터"], def: "전체" },
+        { label: "입고유형", type: "text", ph: "All" },
+        { label: "검수상태", type: "radio", options: ["전체", "미검수", "검수중", "검수완료"], def: "전체" },
+        { label: "오더일자", type: "daterange", def: "month" },
+        { label: "오더번호", type: "text" },
+        { label: "입고예정일자", type: "daterange", def: "startOnly" },
+        { label: "입고예정번호", type: "text" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }, { label: "자재유형", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "공급사코드", type: "text" }, { label: "공급사명", type: "text" }] }
+    ],
+    extra: null,
+    buttons: ["조회", "입고확정"],
+    primary: "입고확정", primaryZh: "入库确认",
+    columns: ["번호", "입고센터", "입고문서번호", "오더번호", "물류센터", "오더일자", "입고예정일자", "검수상태", "전기일자", "입고일자", "입고유형", "공급사코드", "공급사명"],
+    detailColumns: ["번호", "입고문서번호", "입고예정번호", "오더번호", "자재번호", "자재명", "검수상태", "오더수량", "입고예정수량", "검수수량", "입고수량", "제조일자"],
+    detailButtons: [],
+    totalRows: 57, detailRows: 1,
+    qtyCheck: { order: "검수수량", check: "입고수량" }, rowSelects: null, requires: null
+  },
+  GR09: {
+    screen: "[GR09] 입고이력 조회",
+    menuPath: ["입고관리(물류)", "입고이력", "[GR09] 입고이력 조회"],
+    tabs: ["문서정보", "아이템 리스트"],
+    // Row counts unknown in the report (browser lost control after 조회) — totalRows/detailRows null.
+    // Ambiguity: report gives no default for 오더일자 here; assumed 당월 daterange like AS01.
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "입고센터", type: "center", options: ["전체", "[P1]1센터", "[P2]2센터"], def: "전체" },
+        { label: "입고유형", type: "text", ph: "All" },
+        { label: "오더일자", type: "daterange", def: "month" },
+        { label: "오더번호", type: "text" },
+        { label: "전기일자", type: "daterange", def: "startOnly" },
+        { label: "입고일자", type: "daterange", def: "startOnly" },
+        { label: "입고문서번호", type: "text" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }] },
+      { group: "LOT정보", fields: [{ label: "일부인", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "공급사코드", type: "text" }, { label: "공급사명", type: "text" }] }
+    ],
+    extra: null,
+    buttons: ["조회", "입고리스트"],
+    primary: "입고리스트", primaryZh: "入库列表",
+    columns: ["번호", "입고센터", "입고문서번호", "오더번호", "물류센터", "전기일자", "입고일자", "입고유형", "공급사코드", "공급사명", "생성일자"],
+    detailColumns: ["번호", "차량번호", "입고문서번호", "오더번호", "자재번호", "자재명", "오더수량", "입고예정수량", "검수수량", "입고수량", "제조일자", "입고일자"],
+    detailButtons: [],
+    totalRows: null, detailRows: null,
+    qtyCheck: null, rowSelects: null, requires: null
+  },
+  GR12: {
+    screen: "[GR12] WCS생산입고실적 조정",
+    menuPath: ["입고관리(물류)", "입고이력", "[GR12] WCS생산입고실적 조정"],
+    tabs: ["리스트"],
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "입고센터", type: "center", options: ["전체", "[P1]1센터", "[P2]2센터"], def: "전체" },
+        { label: "입고일자", type: "daterange", def: "10days" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }, { label: "팔레트ID", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "공급사코드", type: "text" }, { label: "공급처명", type: "text" }] }
+    ],
+    extra: null,
+    buttons: ["조회", "변경 완료"],
+    primary: "변경 완료", primaryZh: "变更完成",
+    columns: ["번호", "입고센터", "오더번호", "배치코드", "입고일자", "입고유형", "공급사코드", "공급사명", "자재번호", "자재명", "오더수량", "입고예정수량", "입고수량", "재고조정수량(+)", "재고조정수량(-)"],
+    detailColumns: [],
+    detailButtons: [],
+    totalRows: 18833, detailRows: null,
+    qtyCheck: null, rowSelects: null, requires: null
+  },
+  SD01: {
+    screen: "[SD01] 재고 현황",
+    menuPath: ["재고관리", "재고조회", "[SD01] 재고 현황"],
+    tabs: ["제품별"],
+    // The other 9 구분자 tabs (영역별/로케이션별/단순로케이션별/제품LOT별/재고키별/제조일자별/배치코드별/워크오더별/제조일자별(물류)) were NOT expanded in the report — only 제품별 was observed.
+    // Ambiguity: LOT정보 date fields (제조일자/유통기한/입고일자) have no recorded default; typed as date with no def.
+    fieldGroups: [
+      { group: "위치정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "영역", type: "text" },
+        { label: "구역", type: "text" },
+        { label: "로케이션", type: "text" },
+        { label: "센터", type: "center", options: ["", "[P1]1센터", "[P2]2센터"], def: "" }
+      ]},
+      { group: "품목정보", fields: [{ label: "팔레트ID", type: "text" }, { label: "자재번호", type: "text" }, { label: "자재명", type: "text" }, { label: "자재유형", type: "text" }, { label: "내수/수출유형", type: "text" }, { label: "보관조건", type: "text" }, { label: "자재그룹명", type: "text" }, { label: "제품유형내역", type: "text" }] },
+      { group: "LOT정보", fields: [{ label: "배치코드", type: "text" }, { label: "저장위치", type: "text" }, { label: "제조일자", type: "date" }, { label: "유통기한", type: "date" }, { label: "입고일자", type: "date" }, { label: "WCS 스태커 번호", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "공급사코드", type: "text" }] }
+    ],
+    extra: null,
+    buttons: ["조회"],
+    primary: "상세 확인", primaryZh: "查看详情",
+    columns: ["번호", "센터", "물류센터", "자재번호", "자재명", "가용수량", "재고수량", "자재유형명", "단위", "할당수량", "마지막 입고일자", "마지막 출고일자", "보류수량", "품질수량"],
+    detailColumns: [],
+    detailButtons: [],
+    totalRows: 1205, detailRows: null,
+    qtyCheck: null, rowSelects: null, requires: null
+  },
+  SD55: {
+    screen: "[SD55] 재고 조회(ALL)",
+    menuPath: ["재고관리", "재고조회", "[SD55] 재고 조회(ALL)"],
+    tabs: ["제품별"],
+    // The other 4 tabs (제조일자별/배치코드별/채화재고별/제품LOT별) were NOT expanded in the report — only 제품별 was observed.
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "select", options: ["All"], def: "All" },
+        { label: "재고상태", type: "select", options: ["All", "[00]정상", "[10]보류", "[20]품질"], def: "All" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }] }
+    ],
+    extra: [{ kind: "note", text: "*모든 센터 선택 후 조회 시 데이터양으로 인해 로딩 속도가 느릴 수 있습니다." }],
+    buttons: ["조회"],
+    primary: "상세 확인", primaryZh: "查看详情",
+    columns: ["번호", "물류센터", "센터", "자재번호", "자재명", "자재유형명", "재고상태", "단위", "재고수량", "가용수량", "할당수량", "마지막 입고일자", "마지막 출고일자"],
+    detailColumns: [],
+    detailButtons: [],
+    totalRows: 1310, detailRows: null,
+    qtyCheck: null, rowSelects: { "센터": ["[P1]1센터", "[P2]2센터"] }, requires: null
+  },
+  OM01: {
+    screen: "[OM01] 입고오더 생성",
+    menuPath: ["입고관리(물류)", "입고오더", "[OM01] 입고오더 생성"],
+    tabs: ["문서정보", "아이템 리스트"],
+    // Row counts unknown in the report (browser lost control after 조회) — totalRows/detailRows null.
+    // Ambiguity: 입고유형 is a dropdown whose only recorded option is its default "(물) 기타입고[WMS완]"; full option list not in the report.
+    // Note: the report records a 삭제 button both in the 아이템 리스트 area and in the table footer — detailButtons collapses the duplication to ["추가", "삭제"].
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "입고유형", type: "select", options: ["(물) 기타입고[WMS완]"], def: "(물) 기타입고[WMS완]" },
+        { label: "입고상태", type: "radio", options: ["전체", "입고", "미입고"], def: "전체" },
+        { label: "오더일자", type: "daterange", def: "startOnly" },
+        { label: "오더번호", type: "text" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "공급사코드", type: "text" }, { label: "공급사명", type: "text" }] }
+    ],
+    extra: null,
+    buttons: ["조회", "생성", "삭제"],
+    primary: "생성", primaryZh: "生成",
+    columns: ["번호", "물류센터", "입고유형", "오더번호", "오더일자", "공급사코드", "공급사명", "ASN생성여부", "생성일자", "생성자ID"],
+    detailColumns: ["번호", "오더번호", "화주", "자재번호", "자재명", "오더수량", "오더단위", "플랜트", "저장위치", "배치코드", "팔레트ID", "제조일자"],
+    detailButtons: ["추가", "삭제"],
+    totalRows: null, detailRows: null,
+    qtyCheck: null, rowSelects: null, requires: null
+  },
+  OM03: {
+    screen: "[OM03] 출고오더등록(WMS)",
+    menuPath: ["출고관리(물류)", "출고오더", "[OM03] 출고오더등록(WMS)"],
+    tabs: ["문서정보", "아이템 리스트"],
+    // Ambiguity: 출고유형 is a dropdown whose only recorded option is its default "[205](물) 기타출고[완]"; full option list not in the report.
+    fieldGroups: [
+      { group: "문서정보", fields: [
+        { label: "물류센터", type: "static", def: "[WH01]삼양식품 밀양센터" },
+        { label: "출고유형", type: "select", options: ["[205](물) 기타출고[완]"], def: "[205](물) 기타출고[완]" },
+        { label: "오더일자", type: "daterange", def: "startOnly" },
+        { label: "오더번호", type: "text" }
+      ]},
+      { group: "품목정보", fields: [{ label: "자재번호", type: "text" }, { label: "자재명", type: "text" }] },
+      { group: "거래처정보", fields: [{ label: "납품처", type: "text" }, { label: "납품처명", type: "text" }] }
+    ],
+    extra: null,
+    buttons: ["조회", "생성", "삭제"],
+    primary: "생성", primaryZh: "生成",
+    columns: ["번호", "물류센터", "출고유형", "오더번호", "오더일자", "납품처", "납품처명", "배치코드", "거래선/차수", "플랜트", "저장위치", "생성일자"],
+    detailColumns: ["번호", "오더번호", "화주", "자재번호", "자재명", "오더수량", "오더단위", "생성일자", "생성자ID"],
+    detailButtons: ["추가", "삭제"],
+    totalRows: 0, detailRows: 0,
+    qtyCheck: null, rowSelects: null, requires: null
+  }
+};
+
+const simConfigs = { ...simCfgOutbound, ...simCfgInbound };
+
+/* ---------------- simulator v2 shell (2026-11-25) ---------------- */
+/* Shared WMS-style shell: scrollable real menu tree, guide-driven navigation,
+   grouped search fields, main + detail grids, footer. All data is dummy. */
+
+function simPad2(n) { return String(n).padStart(2, "0"); }
+function simToday() { const d = new Date(); return d.getFullYear() + "." + simPad2(d.getMonth() + 1) + "." + simPad2(d.getDate()); }
+function simMonthStart() { const d = new Date(); return d.getFullYear() + "." + simPad2(d.getMonth() + 1) + ".01"; }
+function simDaysAgo(n) { const d = new Date(Date.now() - n * 86400000); return d.getFullYear() + "." + simPad2(d.getMonth() + 1) + "." + simPad2(d.getDate()); }
+
+function simFieldInit(f) {
+  if (f.type === "static") return f.def || "";
+  if (f.type === "checkbox") return !!f.def;
+  if (f.type === "radio" || f.type === "select" || f.type === "center") return f.def != null ? f.def : (f.options && f.options.length ? f.options[0] : "");
+  if (f.type === "date") return simToday();
+  if (f.type === "daterange") {
+    if (f.def === "month") return [simMonthStart(), simToday()];
+    if (f.def === "day") return [simToday(), simToday()];
+    if (f.def === "10days") return [simDaysAgo(10), simToday()];
+    if (f.def === "startOnly") return [simToday(), ""];
+    return [simToday(), simToday()];
+  }
+  return "";
+}
+function simInitVals(cfg) {
+  const vals = {};
+  (cfg.fieldGroups || []).forEach((g) => (g.fields || []).forEach((f) => { vals[f.label] = simFieldInit(f); }));
+  (cfg.extra || []).forEach((ex) => (ex.fields || []).forEach((f) => { if (!(f.label in vals)) vals[f.label] = simFieldInit(f); }));
+  return vals;
+}
+
+/* Dummy cell values — clearly fake practice data (연습/테스트). */
+const SIM_QTY = [2030, 1660, 2100, 5400, 3320, 1450];
 function simDummyValue(col, i) {
   if (col === "번호") return String(i + 1);
-  if (col.includes("수량")) return [2030, 1660, 2100, 5400, 3320, 1450][i % 6].toLocaleString();
-  if (col.includes("일자") || col.includes("날짜")) return "2026.11.23";
-  if (col.includes("명")) return ["연습상사", "테스트물산", "연습자재 A", "연습자재 B", "연습상사", "테스트물산"][i % 6];
-  if (col.includes("번호") || col.includes("코드")) return "10020165" + (10 + i);
-  if (col.includes("상태")) return "연습상태";
-  if (col.includes("차량")) return "연습99가000" + (i + 1);
-  if (col.includes("로케이션")) return "A-0" + (i + 1) + "-01";
-  if (col.includes("DOCK") || col.includes("도크")) return "0" + (i + 1);
-  if (col.includes("단위")) return "BOX";
-  if (col.includes("센터")) return "연습센터";
-  if (col.includes("유형") || col.includes("타입")) return "연습유형";
-  if (col.includes("비고")) return "연습 비고";
+  if (col === "물류센터" || col === "물류센터명") return "[WH01]";
+  if (col === "센터" || col === "입고센터" || col === "출고센터") return i % 2 === 0 ? "[P1]1센터" : "[P2]2센터";
+  if (col.includes("수량")) return SIM_QTY[i % 6].toLocaleString("ko-KR");
+  if (col === "CBM" || col.includes("CBM")) return "12.50";
+  if (col.includes("중량")) return "1,200";
+  if (col.includes("일자") || col.includes("날짜") || col === "DOOR DATE" || col === "ETD" || col === "ETA" || col === "CUT OFF DATE") return "2026.11.23";
+  if (col.includes("시간") || col === "CUT OFF TIME") return "09:00:00";
+  if (col === "자재명" || col === "품번명" || col === "제품명") return ["연습자재 A", "연습자재 B", "연습자재 C", "연습자재 A", "연습자재 B", "연습자재 C"][i % 6];
+  if (col === "자재번호" || col === "품번" || col === "SKU") return "31360" + (i + 1);
+  if (col === "오더번호") return "10020165" + (10 + i);
+  if (col === "D/N번호") return "DN2611230" + (i + 1);
+  if (col === "WAVE번호") return "20261123-00" + (i + 1);
+  if (col === "배차계획번호" || col === "배차번호") return "261123000" + (i + 1);
+  if (col === "출고문서번호" || col === "입고문서번호" || col === "입고예정번호") return "200012930" + (i + 1);
+  if (col === "오더순번" || col === "출고문서순번" || col === "입고예정순번" || col === "입고문서순번" || col === "D/N순번" || col === "주문순번") return "000010";
+  if (col === "생산지시번호" || col === "작업지시번호" || col === "작업문서번호" || col === "MES작업지시번호" || col === "MES작업지시번호(TO)") return "WO26112300" + (i + 1);
+  if (col === "일련번호" || col === "시리얼번호") return "SN26112300" + (i + 1);
+  if (col === "차량번호") return "연습99가000" + (i + 1);
+  if (col === "차량기사") return "연습기사" + (i + 1);
+  if (col === "연락처" || col === "기사연락처") return "010-0000-000" + (i + 1);
+  if (col === "거래선/차수") return "연습상사 26-1차";
+  if (col === "납품처명" || col === "판매처명" || col === "공급사명" || col === "거래처명" || col === "운송사명" || col === "화주") return ["연습상사", "테스트물산", "연습상사", "테스트물산", "연습상사", "테스트물산"][i % 6];
+  if (col === "납품처" || col === "판매처" || col === "공급사코드" || col === "운송사" || col === "배송처코드") return "10020165" + (10 + i);
+  if (col === "DOCK번호" || col === "DOCK" || col === "도크번호") return "0" + ((i % 9) + 1);
+  if (col === "출고대번호") return "GATE-0" + (i + 1);
+  if (col === "From 로케이션" || col === "To 로케이션" || col.includes("로케이션")) return "A-0" + (i + 1) + "-01";
+  if (col === "팔레트ID" || col === "팔레트바코드") return "PLT26112300" + (i + 1);
+  if (col === "배치코드") return "BATCH261123";
+  if (col === "플랜트" || col === "플랜트코드") return "P1";
+  if (col === "저장위치" || col === "SAP저장위치") return "WH01";
+  if (col === "영역") return "A구역";
+  if (col === "ZONE" || col === "구역") return "Z0" + (i + 1);
+  if (col === "단위" || col === "오더단위" || col === "기본단위" || col === "요청단위") return "BOX";
+  if (col === "문서상태" || col === "문서상태명") return ["미작업", "부분할당", "할당완료", "피킹완료", "검수완료", "출고완료"][i % 6];
+  if (col === "검수상태") return ["미검수", "검수중", "검수완료", "미검수", "검수중", "검수완료"][i % 6];
+  if (col === "입고상태") return ["미작업", "분할입고", "입고완료", "미작업", "분할입고", "입고완료"][i % 6];
+  if (col === "출고상태" || col === "출고상태명") return ["미작업", "부분피킹", "피킹완료", "미작업", "부분피킹", "피킹완료"][i % 6];
+  if (col === "상태" || col === "상태명") return ["미작업", "할당완료", "피킹완료", "검수완료", "출고완료", "미작업"][i % 6];
+  if (col === "재고상태") return ["정상", "보류", "품질", "정상", "보류", "품질"][i % 6];
+  if (col === "아이템상태" || col === "아이템상태명") return "미작업";
+  if (col === "WCS 예약여부") return ["예약전", "예약완료", "예약전", "예약완료", "예약전", "예약완료"][i % 6];
+  if (col === "WCS 전송여부" || col === "WCS작업지시여부") return ["미전송", "전송완료", "미전송", "전송완료", "미전송", "전송완료"][i % 6];
+  if (col === "입고취소여부" || col === "취소가능여부" || col === "ASN생성여부" || col === "이미지 등록여부" || col === "유통기한 관리여부" || col === "품질검사 대상여부" || col === "출고완료여부") return i % 2 === 0 ? "Y" : "N";
+  if (col === "출고유형" || col === "입고유형" || col === "출고타입" || col === "입고유형명" || col === "출고유형명" || col === "주문유형" || col === "주문유형명" || col === "출고타입명" || col === "입고유형명") return "연습유형";
+  if (col === "자재유형" || col === "자재유형명" || col === "내수/수출유형" || col === "내수/수출유형명" || col === "보관조건" || col === "보관조건명" || col === "자재그룹명" || col === "제품유형내역") return "연습유형";
+  if (col === "라인코드") return "L0" + (i + 1);
+  if (col === "라인명") return "연습라인 " + (i + 1);
+  if (col === "우선순위") return String((i % 3) + 1);
+  if (col === "지시수량" || col === "양품수량" || col === "불량수량" || col === "잔량" || col === "실적수량" || col === "미할당수량" || col === "출고지시수량" || col === "완료수량" || col === "할당수량" || col === "잔여수량" || col === "기입고수량" || col === "오더수량" || col === "입고예정수량" || col === "검수수량" || col === "입고수량" || col === "출고수량" || col === "기본수량" || col === "요청수량" || col === "피킹수량" || col === "가용수량" || col === "재고수량" || col === "할당수량" || col === "이동OUT" || col === "이동IN" || col === "보류수량" || col === "품질수량" || col === "PLT A" || col === "Capa수량(BOX)" || col === "Capa수량(PLT)" || col === "팔레트당 적재수량" || col === "1공장 팔레트당 적재수량" || col === "2공장 팔레트당 적재수량" || col === "1센터 할당수량" || col === "2센터 할당수량" || col === "재고조정수량(+)" || col === "재고조정수량(-)" || col === "출하가능수량" || col === "출하PLT" || col === "출하BOX" || col === "팔레트수량" || col === "박스수" || col === "총박스수" || col === "총중량") return SIM_QTY[i % 6].toLocaleString("ko-KR");
+  if (col === "WCS 스태커 번호") return "STK-0" + (i + 1);
+  if (col === "컨테이너 규격") return "40FT";
+  if (col === "컨테이너번호") return "CONT2611230" + (i + 1);
+  if (col === "컨테이너유형") return "DRY";
+  if (col === "생성자" || col === "수정자" || col === "생성자명" || col === "수정자명" || col === "생성자ID" || col === "수정자ID" || col === "검수자" || col === "검수자명" || col === "작업자1" || col === "작업자2") return "연습생";
+  if (col === "이미지 파일명") return "practice_" + (i + 1) + ".jpg";
+  if (col === "바코드") return "88000000000" + (i + 1);
+  if (col === "비고" || col === "메모" || col === "특이사항" || col === "비고(RECV)" || col === "비고(ASN)") return "연습 비고";
+  if (col === "납품처 국가명" || col === "판매처 국가명" || col === "수출국가명") return ["China", "USA", "China", "USA", "China", "USA"][i % 6];
+  if (col === "주문카테고리" || col === "납품처타입" || col === "판매처타입" || col === "운송사타입" || col === "출하유형" || col === "출하유형명" || col === "영업그룹코드" || col === "영업그룹명" || col === "영업부서" || col === "영업사원" || col === "유통채널계약" || col === "문서카테고리" || col === "문서카테고리명" || col === "문서유형" || col === "문서유형명" || col === "전기일자") return col === "전기일자" ? "2026.11.23" : "연습";
+  if (col === "제조일자" || col === "소비기한" || col === "유통기한" || col === "입고일자" || col === "출고일자" || col === "생성일자" || col === "수정일자" || col === "입고예정일자" || col === "배차요청일자" || col === "목표출고일자" || col === "오더일자" || col === "작업일자" || col === "지시일자" || col === "마지막 입고일자" || col === "마지막 출고일자" || col === "출하가능일자" || col === "주문등록일자") return "2026.11.23";
+  if (col === "생성시간" || col === "수정시간" || col === "출고시간") return "09:00:00";
+  if (col === "규격") return "연습규격";
+  if (col === "초과입고허용률(%)") return "0";
+  if (col === "보관조건" || col === "입고저장위치(비고)" || col === "입고예정유형") return "연습";
+  if (col === "파일업로드") return "-";
+  if (col === "작업여건" || col === "운송경로") return "연습경로";
+  if (col === "출고문서순번" || col === "입고문서순번") return "000010";
+  if (col === "할당 우선순위") return "[01]거래처코드";
+  if (col === "할당전략키") return "STR-01";
+  if (col === "워크오더번호") return "WO26112300" + (i + 1);
+  if (col === "일부인") return "N";
+  if (col === "불량 사유") return "-";
+  if (col === "출고완료 숨김") return "Y";
   return "연습" + (i + 1);
 }
 
-function GenericSimulator({ lang, item, onBack, notify }) {
-  if (!item) return null;
-  return simConfigs[item.code]
-    ? <GridSimulator lang={lang} item={item} cfg={simConfigs[item.code]} onBack={onBack} notify={notify} />
-    : <StepPractice lang={lang} item={item} onBack={onBack} notify={notify} />;
+function simQtyPair(i) {
+  const order = SIM_QTY[i % 6];
+  const check = i % 3 === 0 ? order - 86 : i % 3 === 1 ? 0 : order;
+  return { order, check };
+}
+function buildSimRows(cfg) {
+  return [0, 1, 2, 3, 4, 5].map((i) => {
+    const q = cfg.qtyCheck ? simQtyPair(i) : null;
+    const cells = {};
+    cfg.columns.forEach((c) => {
+      if (q && c === cfg.qtyCheck.order) cells[c] = q.order.toLocaleString("ko-KR");
+      else if (q && c === cfg.qtyCheck.check) cells[c] = q.check.toLocaleString("ko-KR");
+      else cells[c] = simDummyValue(c, i);
+    });
+    return { id: i + 1, cells, qtyOrder: q ? q.order : null, qtyCheck: q ? q.check : null };
+  });
+}
+function buildDetailRows(cfg, mainId) {
+  const n = 2;
+  return Array.from({ length: n }, (_, j) => {
+    const i = (mainId - 1 + j) % 6;
+    const q = cfg.qtyCheck && cfg.detailColumns.includes(cfg.qtyCheck.order) && cfg.detailColumns.includes(cfg.qtyCheck.check) ? simQtyPair(i) : null;
+    const cells = {};
+    cfg.detailColumns.forEach((c) => {
+      if (q && c === cfg.qtyCheck.order) cells[c] = q.order.toLocaleString("ko-KR");
+      else if (q && c === cfg.qtyCheck.check) cells[c] = q.check.toLocaleString("ko-KR");
+      else cells[c] = simDummyValue(c, i);
+    });
+    return { id: mainId * 10 + j + 1, cells, qtyOrder: q ? q.order : null, qtyCheck: q ? q.check : null };
+  });
+}
+/* qtyCheck lives in the main grid when both qty columns are main columns,
+   otherwise in the detail grid when both are detail columns. */
+function simQtyGrid(cfg) {
+  if (!cfg.qtyCheck) return null;
+  if (cfg.columns.includes(cfg.qtyCheck.order) && cfg.columns.includes(cfg.qtyCheck.check)) return "main";
+  if (cfg.detailColumns.includes(cfg.qtyCheck.order) && cfg.detailColumns.includes(cfg.qtyCheck.check)) return "detail";
+  return null;
+}
+
+function FieldControl({ f, val, onChange }) {
+  const inputCls = "w-36 rounded border border-slate-300 px-2 py-1.5 text-xs";
+  if (f.type === "static") return <input className={inputCls + " bg-slate-100 text-slate-500"} value={val || f.def || ""} readOnly />;
+  if (f.type === "text") return <input className={inputCls} value={val || ""} placeholder={f.ph || ""} onChange={(e) => onChange(e.target.value)} />;
+  if (f.type === "date") return <input className={inputCls} value={val || ""} onChange={(e) => onChange(e.target.value)} />;
+  if (f.type === "daterange") {
+    const v = Array.isArray(val) ? val : [simToday(), simToday()];
+    return (
+      <span className="flex items-center gap-1">
+        <input className="w-[104px] rounded border border-slate-300 px-2 py-1.5 text-xs" value={v[0] || ""} onChange={(e) => onChange([e.target.value, v[1]])} />
+        <span className="text-slate-400">~</span>
+        <input className="w-[104px] rounded border border-slate-300 px-2 py-1.5 text-xs" value={v[1] || ""} onChange={(e) => onChange([v[0], e.target.value])} />
+      </span>
+    );
+  }
+  if (f.type === "select" || f.type === "center") {
+    return (
+      <select className={inputCls} value={val == null ? "" : val} onChange={(e) => onChange(e.target.value)}>
+        {(f.options || []).map((o) => <option key={o} value={o}>{o === "" ? "(미선택)" : o}</option>)}
+      </select>
+    );
+  }
+  if (f.type === "radio") {
+    return (
+      <span className="flex max-w-[520px] flex-wrap items-center gap-x-3 gap-y-1 rounded border border-slate-200 bg-slate-50 px-2 py-1.5">
+        {(f.options || []).map((o) => (
+          <label key={o} className="flex cursor-pointer items-center gap-1 text-xs font-normal text-slate-600">
+            <input type="radio" checked={val === o} onChange={() => onChange(o)} className="h-3.5 w-3.5 accent-[#F26522]" /> {o}
+          </label>
+        ))}
+      </span>
+    );
+  }
+  if (f.type === "checkbox") {
+    return <input type="checkbox" checked={!!val} onChange={(e) => onChange(e.target.checked)} className="h-4 w-4 accent-[#F26522]" />;
+  }
+  return <input className={inputCls} value={val || ""} onChange={(e) => onChange(e.target.value)} />;
+}
+
+function ExtraPanel({ ex, vals, onField, notify, lang }) {
+  const unsupported = () => notify(t(lang, "练习模式下不支持此功能。", "연습 모드에서는 지원하지 않습니다.", "Not supported in practice mode."));
+  if (ex.kind === "note") return <p className="mt-2 text-xs font-bold text-red-500">{ex.text}</p>;
+  if (ex.kind === "checks") {
+    return (
+      <span className="flex items-center gap-3 text-xs text-slate-600">
+        {(ex.options || []).map((c) => (
+          <label key={c} className="flex items-center gap-1">
+            <input type="checkbox" defaultChecked={ex.def !== false} className="h-3.5 w-3.5 accent-[#F26522]" /> {c}
+          </label>
+        ))}
+      </span>
+    );
+  }
+  if (ex.kind === "buttons") {
+    return (
+      <span className="flex flex-wrap gap-1.5">
+        {(ex.buttons || []).map((b) => (
+          <button key={b} onClick={unsupported} className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">{b}</button>
+        ))}
+      </span>
+    );
+  }
+  if (ex.kind === "select") {
+    return (
+      <label className="flex items-center gap-2 text-[11px] font-bold text-slate-500">
+        {ex.label}
+        <select className="rounded border border-slate-300 px-2 py-1.5 text-xs" value={vals[ex.label] || ex.def || ""} onChange={(e) => onField(ex.label, e.target.value)}>
+          {(ex.options || []).map((o) => <option key={o} value={o}>{o}</option>)}
+        </select>
+      </label>
+    );
+  }
+  /* dock / dispatch / vehicle / wcs / inputs — field row(s) + 반영 button */
+  const applyBtn = ex.button || "반영";
+  return (
+    <div className="flex flex-wrap items-end gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+      {(ex.fields || []).map((f) => (
+        <label key={f.label} className="flex flex-col gap-1 text-[11px] font-bold text-slate-500">
+          {f.label}
+          <FieldControl f={f} val={vals[f.label]} onChange={(v) => onField(f.label, v)} />
+        </label>
+      ))}
+      {ex.kind === "dock" && (
+        <label className="flex flex-col gap-1 text-[11px] font-bold text-slate-500">
+          {ex.label}
+          <select className="w-36 rounded border border-slate-300 px-2 py-1.5 text-xs" value={vals[ex.label] || ""} onChange={(e) => onField(ex.label, e.target.value)}>
+            <option value="">(미선택)</option>
+            {(ex.options || []).map((o) => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </label>
+      )}
+      <button onClick={() => notify(t(lang, "已应用（练习）。", "반영되었습니다. (연습)", "Applied. (Practice)"))} className="rounded-lg px-3.5 py-2 text-xs font-black text-white transition hover:opacity-90" style={{ background: "#3A4356" }}>
+        {applyBtn}
+      </button>
+    </div>
+  );
 }
 
 function GridSimulator({ lang, item, cfg, onBack, notify }) {
-
+  const qtyGrid = simQtyGrid(cfg);
+  const [arrived, setArrived] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(true);
+  const [vals, setVals] = useState(() => {
+    const v = simInitVals(cfg);
+    (cfg.requires || []).forEach((req) => { if (req.scope !== "row") v[req.field] = ""; });
+    return v;
+  });
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
   const [completed, setCompleted] = useState([]);
   const [popup, setPopup] = useState(null);
   const [acted, setActed] = useState(false);
+  const [qtyVals, setQtyVals] = useState({});
+  const [rowSelVals, setRowSelVals] = useState({});
+  const [formOpen, setFormOpen] = useState(true);
 
-  const rows = [0, 1, 2, 3, 4, 5].map((i) => ({ id: i + 1, cells: cfg.columns.map((c) => simDummyValue(c, i)) }));
+  const rows = buildSimRows(cfg);
+  const selectedRow = rows.find((r) => r.id === selectedId);
+  const detailRows = selectedRow && cfg.detailColumns.length > 0 ? buildDetailRows(cfg, selectedRow.id) : [];
+  const mainTotal = cfg.totalRows == null ? rows.length : cfg.totalRows === 0 ? rows.length : cfg.totalRows;
+  const mainNote = cfg.totalRows === 0
+    ? t(lang, "默认查询条件结果为 0 条 — 用练习数据显示。", "기본 조회 조건 결과는 0건입니다 — 연습 데이터로 진행합니다.", "0 rows under default conditions — showing practice data.")
+    : cfg.totalRows != null && cfg.totalRows > rows.length
+      ? t(lang, `练习数据 ${rows.length} 条（共 ${cfg.totalRows.toLocaleString()} 条）。`, `연습 데이터 ${rows.length}건 표시 (전체 ${cfg.totalRows.toLocaleString()}건).`, `Showing ${rows.length} practice rows (of ${cfg.totalRows.toLocaleString()}).`)
+      : null;
+
+  const portalCodes = Object.keys(simConfigs).concat(["WDL07"]);
+  const handleMenuClick = (code, label) => {
+    if (!code) { notify(t(lang, "该画面暂无练习模拟器。", "해당 화면의 연습은 준비 중입니다.", "No practice simulator for this screen yet.")); return; }
+    if (code === item.code) { setArrived(true); setGuideOpen(false); return; }
+    if (portalCodes.includes(code)) {
+      notify(t(lang, `本次练习的目标是 ${cfg.screen}，请在左侧菜单选择 ${cfg.screen}。`, `이번 연습 목표는 ${cfg.screen} 화면입니다. 왼쪽 메뉴에서 ${cfg.screen}을(를) 선택해 주세요.`, `This practice targets ${cfg.screen}. Please select it from the left menu.`));
+      return;
+    }
+    notify(t(lang, "该画面暂无练习模拟器。", "해당 화면의 연습은 준비 중입니다.", "No practice simulator for this screen yet."));
+  };
+
   const mission = [
+    { ko: `왼쪽 메뉴에서 ${cfg.screen} 화면을 여세요`, zh: `在左侧菜单打开 ${cfg.screen}`, done: arrived },
     { ko: "조회 버튼을 눌러 목록을 불러오세요", zh: "点击查询按钮加载列表", done: loaded },
-    { ko: "연습할 행을 체크하세요", zh: "勾选要练习的行", done: checked.length > 0 || completed.length > 0 },
+    { ko: qtyGrid === "detail" ? "행을 선택하고 상세 수량을 확인하세요" : qtyGrid === "main" ? "수량이 일치하는 행을 체크하세요" : "연습할 행을 체크하세요", zh: qtyGrid === "detail" ? "选择一行并核对明细数量" : qtyGrid === "main" ? "勾选数量一致的行" : "勾选要练习的行", done: checked.length > 0 || completed.length > 0 },
     { ko: `${cfg.primary} 버튼을 누르세요`, zh: `点击${cfg.primaryZh}按钮`, done: acted || completed.length > 0 },
     { ko: "확인 팝업에서 \"예\"를 누르세요", zh: "在确认弹窗点击\"예\"", done: completed.length > 0 },
   ];
@@ -1603,16 +2619,50 @@ function GridSimulator({ lang, item, cfg, onBack, notify }) {
 
   const doSearch = () => {
     setLoading(true);
-    setTimeout(() => { setLoading(false); setLoaded(true); }, 450);
+    setTimeout(() => { setLoading(false); setLoaded(true); setFormOpen(false); if (!selectedId) setSelectedId(rows[0].id); }, 450);
   };
   const toggleCheck = (id) => {
     if (completed.includes(id)) return;
     setChecked((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
+  const onField = (label, v) => setVals((prev) => ({ ...prev, [label]: v }));
+  const unsupported = () => notify(t(lang, "练习模式下不支持此功能。", "연습 모드에서는 지원하지 않습니다.", "Not supported in practice mode."));
+  const qtyWarn = () => setPopup({ type: "warn", msg: t(lang, "数量不一致，无法处理。请把数量减到与订单数量一致后再试。", "수량이 일치하지 않아 처리할 수 없습니다. 수량을 줄여(감수) 일치시킨 뒤 다시 시도하세요.", "Quantities do not match. Reduce the quantity to match the order, then try again.") });
+
   const doPrimary = () => {
+    if (!arrived) { setPopup({ type: "warn", msg: t(lang, "请先在左侧菜单打开目标画面。", "먼저 왼쪽 메뉴에서 목표 화면을 열어주세요.", "Open the target screen from the left menu first.") }); return; }
     if (!loaded) { setPopup({ type: "warn", msg: t(lang, "先点击查询加载列表。", "먼저 조회 버튼을 눌러 목록을 불러오세요.", "Press 조회 first.") }); return; }
     const active = checked.filter((id) => !completed.includes(id));
     if (active.length === 0) { setPopup({ type: "warn", msg: t(lang, "没有选中的行。", "선택된 행이 없습니다.", "No row selected.") }); return; }
+    if (cfg.requires) {
+      for (const req of cfg.requires) {
+        if (req.scope === "row") {
+          const missing = active.some((id) => !(rowSelVals[id] && rowSelVals[id][req.field]));
+          if (missing) { setPopup({ type: "warn", msg: t(lang, req.msgZh, req.msgKo, req.msgKo) }); return; }
+        } else {
+          const v = vals[req.field];
+          const empty = v == null || v === "" || (Array.isArray(v) && v.every((x) => !x));
+          if (empty) { setPopup({ type: "warn", msg: t(lang, req.msgZh, req.msgKo, req.msgKo) }); return; }
+        }
+      }
+    }
+    if (cfg.qtyCheck && qtyGrid === "main") {
+      const bad = active.some((id) => {
+        const r = rows.find((x) => x.id === id);
+        const cur = qtyVals["m" + id] != null ? qtyVals["m" + id] : r.qtyCheck;
+        return cur !== r.qtyOrder;
+      });
+      if (bad) { qtyWarn(); return; }
+    }
+    if (cfg.qtyCheck && qtyGrid === "detail") {
+      if (!selectedId) { setPopup({ type: "warn", msg: t(lang, "请先在主表选择一行。", "먼저 목록에서 행을 선택하세요.", "Select a row in the main list first.") }); return; }
+      const bad = detailRows.some((d) => {
+        if (d.qtyOrder == null) return false;
+        const cur = qtyVals["d" + d.id] != null ? qtyVals["d" + d.id] : d.qtyCheck;
+        return cur !== d.qtyOrder;
+      });
+      if (bad) { qtyWarn(); return; }
+    }
     setActed(true);
     setPopup({ type: "confirm", msg: t(lang, `要对选中的件执行「${cfg.primaryZh}」吗？`, `선택한 건을 ${cfg.primary} 처리하시겠습니까?`, `Run ${cfg.primary} on the selected rows?`) });
   };
@@ -1623,15 +2673,64 @@ function GridSimulator({ lang, item, cfg, onBack, notify }) {
     setPopup(null);
     notify(t(lang, "练习处理完成。", "연습 처리가 완료되었습니다.", "Practice done."));
   };
-  const reset = () => { setLoaded(false); setChecked([]); setCompleted([]); setActed(false); setPopup(null); };
-  const unsupported = () => notify(t(lang, "练习模式下不支持此功能。", "연습 모드에서는 지원하지 않습니다.", "Not supported in practice mode."));
+  const reset = () => { setLoaded(false); setChecked([]); setSelectedId(null); setCompleted([]); setActed(false); setQtyVals({}); setRowSelVals({}); setPopup(null); setFormOpen(true); };
 
   const gridHead = "border border-slate-300 bg-[#3A4356] px-2 py-1.5 text-left text-[11px] font-bold text-white whitespace-nowrap";
   const gridCell = "border border-slate-200 px-2 py-1.5 text-[12px] whitespace-nowrap";
+  const rightCol = (c) => /수량|CBM|중량/.test(c);
+
+  const renderMainCell = (r, c) => {
+    if (cfg.rowSelects && cfg.rowSelects[c]) {
+      const v = (rowSelVals[r.id] && rowSelVals[r.id][c]) || "";
+      return (
+        <select value={v} disabled={completed.includes(r.id)} onChange={(e) => setRowSelVals((prev) => ({ ...prev, [r.id]: { ...(prev[r.id] || {}), [c]: e.target.value } }))} className="rounded border border-slate-300 px-1 py-0.5 text-xs" onClick={(e) => e.stopPropagation()}>
+          <option value="">(미선택)</option>
+          {cfg.rowSelects[c].map((o) => <option key={o} value={o}>{o}</option>)}
+        </select>
+      );
+    }
+    if (qtyGrid === "main" && cfg.qtyCheck && c === cfg.qtyCheck.check) {
+      const v = qtyVals["m" + r.id] != null ? qtyVals["m" + r.id] : r.qtyCheck;
+      const bad = v !== r.qtyOrder;
+      return (
+        <input
+          type="number" value={v} disabled={completed.includes(r.id)}
+          onChange={(e) => setQtyVals((prev) => ({ ...prev, ["m" + r.id]: Number(e.target.value) }))}
+          onClick={(e) => e.stopPropagation()}
+          className={`w-20 rounded border px-1 py-0.5 text-right text-xs font-bold ${bad ? "border-red-400 bg-red-50 text-red-600" : "border-emerald-300 bg-emerald-50 text-emerald-700"}`}
+        />
+      );
+    }
+    return <span className={cfg.qtyCheck && c === cfg.qtyCheck.check && r.qtyCheck !== r.qtyOrder ? "font-bold text-red-500" : ""}>{r.cells[c]}</span>;
+  };
+  const renderDetailCell = (d, c) => {
+    if (qtyGrid === "detail" && cfg.qtyCheck && c === cfg.qtyCheck.check) {
+      const v = qtyVals["d" + d.id] != null ? qtyVals["d" + d.id] : d.qtyCheck;
+      const bad = d.qtyOrder != null && v !== d.qtyOrder;
+      return (
+        <input
+          type="number" value={v}
+          onChange={(e) => setQtyVals((prev) => ({ ...prev, ["d" + d.id]: Number(e.target.value) }))}
+          className={`w-20 rounded border px-1 py-0.5 text-right text-xs font-bold ${bad ? "border-red-400 bg-red-50 text-red-600" : "border-emerald-300 bg-emerald-50 text-emerald-700"}`}
+        />
+      );
+    }
+    return <span className={cfg.qtyCheck && c === cfg.qtyCheck.check && d.qtyOrder != null && d.qtyCheck !== d.qtyOrder ? "font-bold text-red-500" : ""}>{d.cells[c]}</span>;
+  };
+  const gridFooter = (total, shown) => (
+    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 px-3 py-1.5 text-[11px] text-slate-400">
+      <span className="flex flex-wrap gap-1">
+        {["찾기", "정렬초기화", "레이아웃", "합계", "엑셀다운로드"].map((b) => (
+          <button key={b} onClick={unsupported} className="rounded px-1.5 py-0.5 font-bold text-slate-500 transition hover:bg-slate-100 hover:text-slate-700">{b}</button>
+        ))}
+      </span>
+      <span>(1/1) · {loaded ? `${total.toLocaleString()} Record` : "0 Record"}{loaded && shown != null && total > shown ? ` · 연습 ${shown}건` : ""}</span>
+    </div>
+  );
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#EEF1F5]">
-      <div className="flex items-center gap-3 bg-white px-4 py-2.5 shadow-sm">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-[#EEF1F5]">
+      <div className="flex shrink-0 items-center gap-3 bg-white px-4 py-2.5 shadow-sm">
         <button onClick={onBack} className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
           <ArrowLeft size={14} /> {t(lang, "返回门户", "포털로 돌아가기", "Back to Portal")}
         </button>
@@ -1641,85 +2740,225 @@ function GridSimulator({ lang, item, cfg, onBack, notify }) {
         </button>
       </div>
 
-      <div className="bg-[#232C3D] text-white">
-        <div className="flex items-center gap-4 px-4 py-2.5">
+      <div className="shrink-0 bg-[#232C3D] text-white">
+        <div className="flex items-center gap-4 px-4 pt-2.5">
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded text-white" style={{ background: ORANGE }}><Monitor size={15} /></span>
             <span className="text-base font-black tracking-wide">WMS</span>
           </div>
-          <span className="rounded-t-md bg-[#EEF1F5] px-3.5 py-1.5 text-xs font-bold text-slate-800">{cfg.screen}</span>
-          <div className="ml-auto flex items-center gap-3 text-xs">
-            <span className="rounded border border-white/25 px-2 py-1">[WH01]{t(lang, "练习中心", "연습센터", "Practice Center")}</span>
+          <div className="ml-auto flex items-center gap-2 text-xs">
+            <span className="rounded border border-white/25 px-2 py-1">[WH01]{t(lang, "三养食品密阳中心", "삼양식품 밀양센터", "Samyang Foods Miryang Center")}</span>
             <span className="flex items-center gap-1.5"><User size={13} /> {t(lang, "练习生", "연습생", "Trainee")}</span>
+            <button onClick={() => notify(t(lang, "当前打开的画面：", "열린 화면: ", "Open screen: ") + cfg.screen)} className="rounded border border-white/25 px-2 py-1 font-bold text-slate-200 transition hover:bg-white/10">List</button>
+            <button onClick={onBack} className="rounded border border-white/25 px-2 py-1 font-bold text-slate-200 transition hover:bg-white/10">X</button>
           </div>
+        </div>
+        <div className="mt-2 flex gap-1 overflow-x-auto px-4">
+          <span className="whitespace-nowrap rounded-t-md bg-[#EEF1F5] px-3.5 py-1.5 text-xs font-bold text-slate-800">{cfg.screen}</span>
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-4">
-        <div className="rounded-xl bg-white p-4 shadow-sm">
-          <div className="flex flex-wrap items-end gap-3">
-            {cfg.fields.map((f) => (
-              <label key={f} className="flex flex-col gap-1 text-[11px] font-bold text-slate-500">
-                {f}
-                <input className="w-36 rounded border border-slate-300 px-2 py-1.5 text-xs" placeholder={t(lang, "练习输入", "연습 입력", "Practice")} />
-              </label>
-            ))}
-            <div className="ml-auto flex gap-2">
-              {cfg.buttons.map((b) => (
-                <button key={b} onClick={b === "조회" ? doSearch : b === cfg.primary ? doPrimary : unsupported} className="rounded-lg px-3.5 py-2 text-xs font-black text-white transition hover:opacity-90" style={{ background: b === cfg.primary ? ORANGE : "#3A4356" }}>
-                  {b}
+      <div className="flex min-h-0 flex-1">
+        {menuOpen ? (
+          <aside className="hidden w-60 shrink-0 overflow-y-auto bg-[#2B3440] px-2 py-3 md:block">
+            <button onClick={() => setMenuOpen(false)} className="mb-2 flex w-full items-center justify-between rounded px-2 py-1 text-[11px] font-bold text-slate-400 transition hover:bg-white/10 hover:text-white">
+              <span>LNB Close</span><span>◀</span>
+            </button>
+            <WmsMenuTree nodes={wmsMenu} targetCode={item.code} selectedCode={arrived ? item.code : null} onSelect={handleMenuClick} />
+          </aside>
+        ) : (
+          <button onClick={() => setMenuOpen(true)} className="hidden shrink-0 items-start bg-[#2B3440] px-2 py-3 text-[11px] font-bold text-slate-300 transition hover:text-white md:block">
+            ▶<span className="mt-2 block [writing-mode:vertical-rl]">메뉴 열기</span>
+          </button>
+        )}
+
+        <main className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden px-3 py-3 md:px-4">
+          <div className="flex shrink-0 items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
+            <AlertCircle size={14} />
+            {t(lang, "练习用模拟器 — 不是真实 WMS 数据", "연습용 시뮬레이터 — 실제 WMS 데이터가 아닙니다", "Practice simulator — not real WMS data")}
+          </div>
+
+          {guideOpen ? (
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-black text-slate-800">{t(lang, "练习指引", "연습 안내", "Practice Guide")}</h3>
+                    <p className="mt-1 text-[13px] leading-6 text-slate-600">
+                      {t(lang, "先在左侧菜单按以下路径找到目标画面：", "왼쪽 메뉴에서 아래 경로대로 목표 화면을 찾으세요:", "Find the target screen in the left menu:")}
+                      <span className="font-black text-slate-800"> {cfg.menuPath.join(" > ")} </span>
+                    </p>
+                    <p className="text-[13px] leading-6 text-slate-600">{t(lang, "打开画面后按查询、勾选、执行按钮的顺序练习，和真实 WMS 的查询流程一样。", "화면을 연 뒤 조회 → 행 선택 → 실행 버튼 순서로 연습하세요. 실제 WMS 조회 절차와 같습니다.", "After opening the screen, practice in order: 조회 → select rows → run the action, just like querying in the real WMS.")}</p>
+                    <ol className="mt-2 space-y-1">
+                      {item.steps.map((s, i) => (
+                        <li key={i} className="text-xs text-slate-600"><span className="font-black" style={{ color: ORANGE }}>{String(i + 1).padStart(2, "0")}</span> {t(lang, s.zh, s.ko, s.ko)}</li>
+                      ))}
+                    </ol>
+                  </div>
+                  <button onClick={() => { setArrived(true); setGuideOpen(false); }} className="shrink-0 rounded-lg px-3.5 py-2 text-xs font-black text-white transition hover:opacity-90" style={{ background: ORANGE }}>
+                    {t(lang, "打开画面", "화면 열기", "Open Screen")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : !arrived ? (
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="rounded-xl bg-white p-8 text-center shadow-sm">
+                <p className="text-sm font-black text-slate-700">{t(lang, "请先在左侧菜单打开目标画面", "왼쪽 메뉴에서 목표 화면을 먼저 열어주세요", "Open the target screen from the left menu first")}</p>
+                <p className="mt-2 text-[13px] leading-6 text-slate-500">
+                  {t(lang, "目标画面在菜单中以橙色标出：", "목표 화면은 메뉴에서 주황색으로 표시되어 있습니다:", "The target screen is highlighted in orange in the menu:")}
+                  <span className="font-black" style={{ color: ORANGE }}> {cfg.screen}</span>
+                </p>
+                <button onClick={() => { setArrived(true); setGuideOpen(false); }} className="mt-4 rounded-lg px-4 py-2 text-xs font-black text-white transition hover:opacity-90" style={{ background: ORANGE }}>
+                  {t(lang, "直接打开画面", "화면 바로 열기", "Open Screen Directly")}
                 </button>
-              ))}
+              </div>
             </div>
-          </div>
-        </div>
+          ) : (
+            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+              <div className="shrink-0 rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                  <span className="text-sm font-black text-slate-800">{t(lang, "练习任务", "연습 미션", "Practice Mission")}</span>
+                  {mission.map((m, i) => (
+                    <span key={i} className={`flex items-center gap-1.5 text-xs font-bold ${m.done ? "text-emerald-600" : "text-slate-400"}`}>
+                      {m.done ? <CheckCircle2 size={14} /> : <span className="flex h-4 w-4 items-center justify-center rounded-full border border-slate-300 text-[10px]">{i + 1}</span>}
+                      {t(lang, m.zh, m.ko, m.ko)}
+                    </span>
+                  ))}
+                  <button onClick={() => setGuideOpen(true)} className="text-xs font-bold text-orange-600 hover:underline">
+                    {cfg.menuPath.join(" > ")} · {t(lang, "查看指引", "안내 보기", "Show guide")}
+                  </button>
+                  {allDone && (
+                    <button onClick={reset} className="ml-auto flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-black text-white transition hover:opacity-90" style={{ background: ORANGE }}>
+                      <RotateCcw size={13} /> {t(lang, "再次练习", "다시 연습", "Practice Again")}
+                    </button>
+                  )}
+                </div>
+              </div>
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_300px]">
-          <div className="overflow-x-auto rounded-xl bg-white p-4 shadow-sm">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr>
-                  <th className={gridHead}></th>
-                  {cfg.columns.map((c) => <th key={c} className={gridHead}>{c}</th>)}
-                  <th className={gridHead}>{t(lang, "状态", "상태", "Status")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {!loaded ? (
-                  <tr><td colSpan={cfg.columns.length + 2} className="px-2 py-8 text-center text-sm text-slate-400">{loading ? t(lang, "加载中…", "불러오는 중…", "Loading…") : t(lang, "点击查询后显示练习数据。", "조회를 누르면 연습 데이터가 표시됩니다.", "Press 조회 to load practice data.")}</td></tr>
-                ) : rows.map((r) => (
-                  <tr key={r.id} className={completed.includes(r.id) ? "bg-emerald-50" : ""}>
-                    <td className={gridCell}><input type="checkbox" checked={checked.includes(r.id)} disabled={completed.includes(r.id)} onChange={() => toggleCheck(r.id)} /></td>
-                    {r.cells.map((v, ci) => <td key={ci} className={gridCell}>{v}</td>)}
-                    <td className={gridCell}>{completed.includes(r.id) ? <span className="font-bold text-emerald-600">{t(lang, "完成", "완료", "Done")}</span> : ""}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <p className="mt-2 text-right text-[11px] text-slate-400">{loaded ? `${rows.length} Record` : "0 Record"} · {t(lang, "完成", "완료", "Done")} {completed.length} / {rows.length}</p>
-          </div>
+              <div className="shrink-0 rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="flex items-center justify-between px-4 pt-3">
+                  <span className="text-xs font-black text-slate-700">{t(lang, "查询条件", "조회조건", "Search Conditions")}</span>
+                  <button onClick={() => setFormOpen(!formOpen)} className="text-xs font-bold text-orange-600 hover:underline">
+                    {formOpen ? t(lang, "收起", "접기", "Collapse") : t(lang, "展开", "펼치기", "Expand")}
+                  </button>
+                </div>
+                {formOpen && (
+                  <div className="p-4 pt-2">
+                    {(cfg.fieldGroups || []).map((g) => (
+                      <div key={g.group} className="mb-3 border-b border-slate-100 pb-3 last:mb-0 last:border-0 last:pb-0">
+                        <p className="mb-2 text-[11px] font-black tracking-wide text-slate-400">{g.group}</p>
+                        <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
+                          {g.fields.map((f) => (
+                            <label key={f.label} className="flex flex-col gap-1 text-[11px] font-bold text-slate-500">
+                              {f.label}
+                              <FieldControl f={f} val={vals[f.label]} onChange={(v) => onField(f.label, v)} />
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    {(cfg.extra || []).map((ex, i) => (
+                      <div key={i} className="mt-3">
+                        <ExtraPanel ex={ex} vals={vals} onField={onField} notify={notify} lang={lang} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-          <div className="rounded-xl bg-white p-4 shadow-sm">
-            <h3 className="text-sm font-black text-slate-800">{t(lang, "练习任务", "연습 미션", "Practice Mission")}</h3>
-            <ol className="mt-3 space-y-2.5">
-              {mission.map((m, i) => (
-                <li key={i} className="flex items-start gap-2 text-[13px]">
-                  {m.done ? <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-500" /> : <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[10px] font-black text-slate-600">{i + 1}</span>}
-                  <span className={m.done ? "text-slate-400 line-through" : "font-bold text-slate-700"}>{t(lang, m.zh, m.ko, m.ko)}</span>
-                </li>
-              ))}
-            </ol>
-            {allDone && <p className="mt-4 rounded-lg bg-emerald-50 px-3 py-2 text-center text-sm font-black text-emerald-600">{t(lang, "练习完成！", "연습 완료!", "Practice complete!")}</p>}
-            <div className="mt-4 border-t border-slate-100 pt-3">
-              <p className="text-[11px] font-bold text-slate-400">{t(lang, "SOP 流程", "SOP 절차", "SOP Steps")}</p>
-              <ol className="mt-2 space-y-1.5">
-                {item.steps.map((s, i) => (
-                  <li key={i} className="text-xs text-slate-600"><span className="font-black" style={{ color: ORANGE }}>{String(i + 1).padStart(2, "0")}</span> {t(lang, s.zh, s.ko, s.ko)}</li>
+              <div className="flex shrink-0 flex-wrap gap-2">
+                {cfg.buttons.map((b) => (
+                  <button key={b} onClick={b === "조회" ? doSearch : b === cfg.primary ? doPrimary : unsupported} className="rounded-lg px-3.5 py-2 text-xs font-black text-white transition hover:opacity-90" style={{ background: b === cfg.primary ? ORANGE : b === "조회" ? "#3A4356" : "#94A3B8" }}>
+                    {b === "조회" && loading ? t(lang, "查询中...", "조회 중...", "Loading...") : b}
+                  </button>
                 ))}
-              </ol>
+              </div>
+
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm">
+                <div className="shrink-0 border-b border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-black text-slate-700">{cfg.tabs[0]}</div>
+                <div className="min-h-0 flex-1 overflow-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr>
+                        <th className={gridHead}></th>
+                        {cfg.columns.map((c) => <th key={c} className={gridHead}>{c}</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {!loaded && (
+                        <tr><td colSpan={cfg.columns.length + 1} className="px-3 py-8 text-center text-sm text-slate-400">{loading ? t(lang, "加载中…", "불러오는 중…", "Loading…") : t(lang, "点击查询后显示练习数据。", "조회를 누르면 연습 데이터가 표시됩니다.", "Press 조회 to load practice data.")}</td></tr>
+                      )}
+                      {loaded && rows.map((r) => {
+                        const isDone = completed.includes(r.id);
+                        const isSel = selectedId === r.id;
+                        return (
+                          <tr key={r.id} onClick={() => setSelectedId(r.id)} className={`cursor-pointer ${isDone ? "bg-emerald-50 text-slate-400" : isSel ? "bg-yellow-100" : "hover:bg-slate-50"}`}>
+                            <td className={gridCell} onClick={(e) => e.stopPropagation()}>
+                              <input type="checkbox" checked={checked.includes(r.id)} disabled={isDone} onChange={() => toggleCheck(r.id)} className="h-3.5 w-3.5 accent-[#F26522]" />
+                            </td>
+                            {cfg.columns.map((c) => (
+                              <td key={c} className={`${gridCell} ${rightCol(c) ? "text-right" : ""}`}>{renderMainCell(r, c)}</td>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="shrink-0">{gridFooter(mainTotal, rows.length)}</div>
+                {mainNote && loaded && <p className="shrink-0 border-t border-slate-100 px-3 py-1.5 text-[11px] text-slate-400">{mainNote}</p>}
+                <p className="shrink-0 border-t border-slate-100 px-3 py-1.5 text-right text-[11px] text-slate-400">{t(lang, "完成", "완료", "Done")} {completed.length} / {rows.length}</p>
+              </div>
+
+              {cfg.detailColumns.length > 0 && (
+                <div className="flex h-[34%] shrink-0 flex-col overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm">
+                  <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50 px-3 py-1.5">
+                    <span className="text-xs font-black text-slate-700">{cfg.tabs[1] || "아이템 리스트"}</span>
+                    <span className="flex gap-1.5">
+                      {(cfg.detailButtons || []).map((b) => (
+                        <button key={b} onClick={b === cfg.primary ? doPrimary : b === "반영" ? () => notify(t(lang, "已应用（练习）。", "반영되었습니다. (연습)", "Applied. (Practice)")) : unsupported} className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600 transition hover:bg-slate-50" style={b === cfg.primary ? { background: ORANGE, borderColor: "transparent", color: "#fff" } : {}}>{b}</button>
+                      ))}
+                    </span>
+                  </div>
+                  <div className="min-h-0 flex-1 overflow-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr>
+                          <th className={gridHead}></th>
+                          {cfg.detailColumns.map((c) => <th key={c} className={gridHead}>{c}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {!loaded && (
+                          <tr><td colSpan={cfg.detailColumns.length + 1} className="px-3 py-8 text-center text-sm text-slate-400">{t(lang, "点击查询后显示练习数据。", "조회를 누르면 연습 데이터가 표시됩니다.", "Press 조회 to load practice data.")}</td></tr>
+                        )}
+                        {loaded && !selectedRow && (
+                          <tr><td colSpan={cfg.detailColumns.length + 1} className="px-3 py-8 text-center text-sm text-slate-400">{t(lang, "在主表选择一行查看明细。", "목록에서 행을 선택하면 상세 내용이 표시됩니다.", "Select a row in the main list to see its details.")}</td></tr>
+                        )}
+                        {loaded && selectedRow && detailRows.map((d) => (
+                          <tr key={d.id} className="hover:bg-slate-50">
+                            <td className={gridCell}></td>
+                            {cfg.detailColumns.map((c) => (
+                              <td key={c} className={`${gridCell} ${rightCol(c) ? "text-right" : ""}`}>{renderDetailCell(d, c)}</td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="shrink-0">{gridFooter(cfg.detailRows == null ? detailRows.length : cfg.detailRows, detailRows.length)}</div>
+                </div>
+              )}
+
+              {cfg.tabs.length > 2 && (
+                <div className="shrink-0 rounded-lg border border-dashed border-slate-300 bg-white px-4 py-3 text-[13px] text-slate-400 shadow-sm">
+                  {cfg.tabs[2]} — {t(lang, "该标签页在本次学习中未展开，模拟器准备中。", "이 탭은 이번 학습에서 확인하지 못했습니다. 준비 중입니다.", "This tab was not covered in the learning pass — in preparation.")}
+                </div>
+              )}
             </div>
-          </div>
-        </div>
+          )}
+        </main>
       </div>
 
       {popup && (
@@ -1746,6 +2985,14 @@ function GridSimulator({ lang, item, cfg, onBack, notify }) {
   );
 }
 
+
+function GenericSimulator({ lang, item, onBack, notify }) {
+  if (!item) return null;
+  return simConfigs[item.code]
+    ? <GridSimulator lang={lang} item={item} cfg={simConfigs[item.code]} onBack={onBack} notify={notify} />
+    : <StepPractice lang={lang} item={item} onBack={onBack} notify={notify} />;
+}
+
 function StepPractice({ lang, item, onBack, notify }) {
   const [doneCount, setDoneCount] = useState(0);
   const total = item.steps.length;
@@ -1766,8 +3013,8 @@ function StepPractice({ lang, item, onBack, notify }) {
         </button>
       </div>
       <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-6">
-        <div className="rounded-xl bg-amber-50 px-4 py-3 text-[13px] font-bold text-amber-700">
-          {t(lang, "本条目为流程顺序练习，画面模拟器准备中。按顺序点击每一步。", "이 항목은 절차 순서 연습입니다. 화면 시뮬레이터는 준비 중입니다. 순서대로 각 단계를 눌러보세요.", "Step-order practice. Screen simulator in preparation.")}
+        <div className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-[13px] font-bold text-amber-700">
+          {t(lang, "本条目为流程顺序练习，按顺序点击每一步。", "이 항목은 절차 순서 연습입니다. 순서대로 각 단계를 눌러보세요.", "Step-order practice. Click each step in order.")}
         </div>
         <div className="mt-4 rounded-xl bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
@@ -1800,7 +3047,6 @@ function StepPractice({ lang, item, onBack, notify }) {
     </div>
   );
 }
-
 function Simulator({ lang, onBack, notify }) {
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -1922,7 +3168,7 @@ function Simulator({ lang, onBack, notify }) {
       <div className="flex flex-1">
         {/* WMS side menu */}
         <aside className="hidden w-52 shrink-0 overflow-y-auto bg-[#2B3440] px-2 py-3 md:block">
-          <WmsMenuTree nodes={wmsMenu} />
+          <WmsMenuTree nodes={wmsMenu} targetCode="WDL07" />
         </aside>
 
         {/* main */}
