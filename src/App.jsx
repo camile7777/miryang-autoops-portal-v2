@@ -2585,6 +2585,7 @@ function GridSimulator({ lang, item, cfg, onBack, notify }) {
   const [acted, setActed] = useState(false);
   const [qtyVals, setQtyVals] = useState({});
   const [rowSelVals, setRowSelVals] = useState({});
+  const [formOpen, setFormOpen] = useState(true);
 
   const rows = buildSimRows(cfg);
   const selectedRow = rows.find((r) => r.id === selectedId);
@@ -2618,7 +2619,7 @@ function GridSimulator({ lang, item, cfg, onBack, notify }) {
 
   const doSearch = () => {
     setLoading(true);
-    setTimeout(() => { setLoading(false); setLoaded(true); if (!selectedId) setSelectedId(rows[0].id); }, 450);
+    setTimeout(() => { setLoading(false); setLoaded(true); setFormOpen(false); if (!selectedId) setSelectedId(rows[0].id); }, 450);
   };
   const toggleCheck = (id) => {
     if (completed.includes(id)) return;
@@ -2672,7 +2673,7 @@ function GridSimulator({ lang, item, cfg, onBack, notify }) {
     setPopup(null);
     notify(t(lang, "练习处理完成。", "연습 처리가 완료되었습니다.", "Practice done."));
   };
-  const reset = () => { setLoaded(false); setChecked([]); setSelectedId(null); setCompleted([]); setActed(false); setQtyVals({}); setRowSelVals({}); setPopup(null); };
+  const reset = () => { setLoaded(false); setChecked([]); setSelectedId(null); setCompleted([]); setActed(false); setQtyVals({}); setRowSelVals({}); setPopup(null); setFormOpen(true); };
 
   const gridHead = "border border-slate-300 bg-[#3A4356] px-2 py-1.5 text-left text-[11px] font-bold text-white whitespace-nowrap";
   const gridCell = "border border-slate-200 px-2 py-1.5 text-[12px] whitespace-nowrap";
@@ -2728,8 +2729,8 @@ function GridSimulator({ lang, item, cfg, onBack, notify }) {
   );
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#EEF1F5]">
-      <div className="flex items-center gap-3 bg-white px-4 py-2.5 shadow-sm">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-[#EEF1F5]">
+      <div className="flex shrink-0 items-center gap-3 bg-white px-4 py-2.5 shadow-sm">
         <button onClick={onBack} className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
           <ArrowLeft size={14} /> {t(lang, "返回门户", "포털로 돌아가기", "Back to Portal")}
         </button>
@@ -2739,7 +2740,7 @@ function GridSimulator({ lang, item, cfg, onBack, notify }) {
         </button>
       </div>
 
-      <div className="bg-[#232C3D] text-white">
+      <div className="shrink-0 bg-[#232C3D] text-white">
         <div className="flex items-center gap-4 px-4 pt-2.5">
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded text-white" style={{ background: ORANGE }}><Monitor size={15} /></span>
@@ -2757,67 +2758,65 @@ function GridSimulator({ lang, item, cfg, onBack, notify }) {
         </div>
       </div>
 
-      <div className="flex flex-1">
+      <div className="flex min-h-0 flex-1">
         {menuOpen ? (
-          <aside className="hidden w-60 shrink-0 overflow-y-auto bg-[#2B3440] px-2 py-3 md:block" style={{ position: "sticky", top: 0, maxHeight: "100vh" }}>
+          <aside className="hidden w-60 shrink-0 overflow-y-auto bg-[#2B3440] px-2 py-3 md:block">
             <button onClick={() => setMenuOpen(false)} className="mb-2 flex w-full items-center justify-between rounded px-2 py-1 text-[11px] font-bold text-slate-400 transition hover:bg-white/10 hover:text-white">
               <span>LNB Close</span><span>◀</span>
             </button>
             <WmsMenuTree nodes={wmsMenu} targetCode={item.code} selectedCode={arrived ? item.code : null} onSelect={handleMenuClick} />
           </aside>
         ) : (
-          <button onClick={() => setMenuOpen(true)} className="hidden shrink-0 items-start bg-[#2B3440] px-2 py-3 text-[11px] font-bold text-slate-300 transition hover:text-white md:block" style={{ position: "sticky", top: 0, maxHeight: "100vh" }}>
+          <button onClick={() => setMenuOpen(true)} className="hidden shrink-0 items-start bg-[#2B3440] px-2 py-3 text-[11px] font-bold text-slate-300 transition hover:text-white md:block">
             ▶<span className="mt-2 block [writing-mode:vertical-rl]">메뉴 열기</span>
           </button>
         )}
 
-        <main className="min-w-0 flex-1 px-3 py-3 md:px-4">
-          <div className="mb-3 flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
+        <main className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden px-3 py-3 md:px-4">
+          <div className="flex shrink-0 items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
             <AlertCircle size={14} />
             {t(lang, "练习用模拟器 — 不是真实 WMS 数据", "연습용 시뮬레이터 — 실제 WMS 데이터가 아닙니다", "Practice simulator — not real WMS data")}
           </div>
 
           {guideOpen ? (
-            <div className="mb-3 rounded-xl border border-orange-200 bg-orange-50 p-4 shadow-sm">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h3 className="text-sm font-black text-slate-800">{t(lang, "练习指引", "연습 안내", "Practice Guide")}</h3>
-                  <p className="mt-1 text-[13px] leading-6 text-slate-600">
-                    {t(lang, "先在左侧菜单按以下路径找到目标画面：", "왼쪽 메뉴에서 아래 경로대로 목표 화면을 찾으세요:", "Find the target screen in the left menu:")}
-                    <span className="font-black text-slate-800"> {cfg.menuPath.join(" > ")} </span>
-                  </p>
-                  <p className="text-[13px] leading-6 text-slate-600">{t(lang, "打开画面后按查询、勾选、执行按钮的顺序练习，和真实 WMS 的查询流程一样。", "화면을 연 뒤 조회 → 행 선택 → 실행 버튼 순서로 연습하세요. 실제 WMS 조회 절차와 같습니다.", "After opening the screen, practice in order: 조회 → select rows → run the action, just like querying in the real WMS.")}</p>
-                  <ol className="mt-2 space-y-1">
-                    {item.steps.map((s, i) => (
-                      <li key={i} className="text-xs text-slate-600"><span className="font-black" style={{ color: ORANGE }}>{String(i + 1).padStart(2, "0")}</span> {t(lang, s.zh, s.ko, s.ko)}</li>
-                    ))}
-                  </ol>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-black text-slate-800">{t(lang, "练习指引", "연습 안내", "Practice Guide")}</h3>
+                    <p className="mt-1 text-[13px] leading-6 text-slate-600">
+                      {t(lang, "先在左侧菜单按以下路径找到目标画面：", "왼쪽 메뉴에서 아래 경로대로 목표 화면을 찾으세요:", "Find the target screen in the left menu:")}
+                      <span className="font-black text-slate-800"> {cfg.menuPath.join(" > ")} </span>
+                    </p>
+                    <p className="text-[13px] leading-6 text-slate-600">{t(lang, "打开画面后按查询、勾选、执行按钮的顺序练习，和真实 WMS 的查询流程一样。", "화면을 연 뒤 조회 → 행 선택 → 실행 버튼 순서로 연습하세요. 실제 WMS 조회 절차와 같습니다.", "After opening the screen, practice in order: 조회 → select rows → run the action, just like querying in the real WMS.")}</p>
+                    <ol className="mt-2 space-y-1">
+                      {item.steps.map((s, i) => (
+                        <li key={i} className="text-xs text-slate-600"><span className="font-black" style={{ color: ORANGE }}>{String(i + 1).padStart(2, "0")}</span> {t(lang, s.zh, s.ko, s.ko)}</li>
+                      ))}
+                    </ol>
+                  </div>
+                  <button onClick={() => { setArrived(true); setGuideOpen(false); }} className="shrink-0 rounded-lg px-3.5 py-2 text-xs font-black text-white transition hover:opacity-90" style={{ background: ORANGE }}>
+                    {t(lang, "打开画面", "화면 열기", "Open Screen")}
+                  </button>
                 </div>
-                <button onClick={() => { setArrived(true); setGuideOpen(false); }} className="shrink-0 rounded-lg px-3.5 py-2 text-xs font-black text-white transition hover:opacity-90" style={{ background: ORANGE }}>
-                  {t(lang, "打开画面", "화면 열기", "Open Screen")}
+              </div>
+            </div>
+          ) : !arrived ? (
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="rounded-xl bg-white p-8 text-center shadow-sm">
+                <p className="text-sm font-black text-slate-700">{t(lang, "请先在左侧菜单打开目标画面", "왼쪽 메뉴에서 목표 화면을 먼저 열어주세요", "Open the target screen from the left menu first")}</p>
+                <p className="mt-2 text-[13px] leading-6 text-slate-500">
+                  {t(lang, "目标画面在菜单中以橙色标出：", "목표 화면은 메뉴에서 주황색으로 표시되어 있습니다:", "The target screen is highlighted in orange in the menu:")}
+                  <span className="font-black" style={{ color: ORANGE }}> {cfg.screen}</span>
+                </p>
+                <button onClick={() => { setArrived(true); setGuideOpen(false); }} className="mt-4 rounded-lg px-4 py-2 text-xs font-black text-white transition hover:opacity-90" style={{ background: ORANGE }}>
+                  {t(lang, "直接打开画面", "화면 바로 열기", "Open Screen Directly")}
                 </button>
               </div>
             </div>
           ) : (
-            <button onClick={() => setGuideOpen(true)} className="mb-3 text-xs font-bold text-orange-600 hover:underline">
-              {cfg.menuPath.join(" > ")} · {t(lang, "查看指引", "안내 보기", "Show guide")}
-            </button>
-          )}
-
-          {!arrived ? (
-            <div className="rounded-xl bg-white p-8 text-center shadow-sm">
-              <p className="text-sm font-black text-slate-700">{t(lang, "请先在左侧菜单打开目标画面", "왼쪽 메뉴에서 목표 화면을 먼저 열어주세요", "Open the target screen from the left menu first")}</p>
-              <p className="mt-2 text-[13px] leading-6 text-slate-500">
-                {t(lang, "目标画面在菜单中以橙色标出：", "목표 화면은 메뉴에서 주황색으로 표시되어 있습니다:", "The target screen is highlighted in orange in the menu:")}
-                <span className="font-black" style={{ color: ORANGE }}> {cfg.screen}</span>
-              </p>
-              <button onClick={() => { setArrived(true); setGuideOpen(false); }} className="mt-4 rounded-lg px-4 py-2 text-xs font-black text-white transition hover:opacity-90" style={{ background: ORANGE }}>
-                {t(lang, "直接打开画面", "화면 바로 열기", "Open Screen Directly")}
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="mb-3 rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm">
+            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+              <div className="shrink-0 rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm">
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
                   <span className="text-sm font-black text-slate-800">{t(lang, "练习任务", "연습 미션", "Practice Mission")}</span>
                   {mission.map((m, i) => (
@@ -2826,6 +2825,9 @@ function GridSimulator({ lang, item, cfg, onBack, notify }) {
                       {t(lang, m.zh, m.ko, m.ko)}
                     </span>
                   ))}
+                  <button onClick={() => setGuideOpen(true)} className="text-xs font-bold text-orange-600 hover:underline">
+                    {cfg.menuPath.join(" > ")} · {t(lang, "查看指引", "안내 보기", "Show guide")}
+                  </button>
                   {allDone && (
                     <button onClick={reset} className="ml-auto flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-black text-white transition hover:opacity-90" style={{ background: ORANGE }}>
                       <RotateCcw size={13} /> {t(lang, "再次练习", "다시 연습", "Practice Again")}
@@ -2834,71 +2836,84 @@ function GridSimulator({ lang, item, cfg, onBack, notify }) {
                 </div>
               </div>
 
-              <div className="rounded-xl bg-white p-4 shadow-sm">
-                {(cfg.fieldGroups || []).map((g) => (
-                  <div key={g.group} className="mb-3 border-b border-slate-100 pb-3 last:mb-0 last:border-0 last:pb-0">
-                    <p className="mb-2 text-[11px] font-black tracking-wide text-slate-400">{g.group}</p>
-                    <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
-                      {g.fields.map((f) => (
-                        <label key={f.label} className="flex flex-col gap-1 text-[11px] font-bold text-slate-500">
-                          {f.label}
-                          <FieldControl f={f} val={vals[f.label]} onChange={(v) => onField(f.label, v)} />
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                {(cfg.extra || []).map((ex, i) => (
-                  <div key={i} className="mt-3">
-                    <ExtraPanel ex={ex} vals={vals} onField={onField} notify={notify} lang={lang} />
-                  </div>
-                ))}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {cfg.buttons.map((b) => (
-                    <button key={b} onClick={b === "조회" ? doSearch : b === cfg.primary ? doPrimary : unsupported} className="rounded-lg px-3.5 py-2 text-xs font-black text-white transition hover:opacity-90" style={{ background: b === cfg.primary ? ORANGE : b === "조회" ? "#3A4356" : "#94A3B8" }}>
-                      {b === "조회" && loading ? t(lang, "查询中...", "조회 중...", "Loading...") : b}
-                    </button>
-                  ))}
+              <div className="shrink-0 rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="flex items-center justify-between px-4 pt-3">
+                  <span className="text-xs font-black text-slate-700">{t(lang, "查询条件", "조회조건", "Search Conditions")}</span>
+                  <button onClick={() => setFormOpen(!formOpen)} className="text-xs font-bold text-orange-600 hover:underline">
+                    {formOpen ? t(lang, "收起", "접기", "Collapse") : t(lang, "展开", "펼치기", "Expand")}
+                  </button>
                 </div>
+                {formOpen && (
+                  <div className="p-4 pt-2">
+                    {(cfg.fieldGroups || []).map((g) => (
+                      <div key={g.group} className="mb-3 border-b border-slate-100 pb-3 last:mb-0 last:border-0 last:pb-0">
+                        <p className="mb-2 text-[11px] font-black tracking-wide text-slate-400">{g.group}</p>
+                        <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
+                          {g.fields.map((f) => (
+                            <label key={f.label} className="flex flex-col gap-1 text-[11px] font-bold text-slate-500">
+                              {f.label}
+                              <FieldControl f={f} val={vals[f.label]} onChange={(v) => onField(f.label, v)} />
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    {(cfg.extra || []).map((ex, i) => (
+                      <div key={i} className="mt-3">
+                        <ExtraPanel ex={ex} vals={vals} onField={onField} notify={notify} lang={lang} />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div className="mt-4 overflow-x-auto rounded-lg border border-slate-300 bg-white shadow-sm">
-                <div className="border-b border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-black text-slate-700">{cfg.tabs[0]}</div>
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr>
-                      <th className={gridHead}></th>
-                      {cfg.columns.map((c) => <th key={c} className={gridHead}>{c}</th>)}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {!loaded && (
-                      <tr><td colSpan={cfg.columns.length + 1} className="px-3 py-8 text-center text-sm text-slate-400">{loading ? t(lang, "加载中…", "불러오는 중…", "Loading…") : t(lang, "点击查询后显示练习数据。", "조회를 누르면 연습 데이터가 표시됩니다.", "Press 조회 to load practice data.")}</td></tr>
-                    )}
-                    {loaded && rows.map((r) => {
-                      const isDone = completed.includes(r.id);
-                      const isSel = selectedId === r.id;
-                      return (
-                        <tr key={r.id} onClick={() => setSelectedId(r.id)} className={`cursor-pointer ${isDone ? "bg-emerald-50 text-slate-400" : isSel ? "bg-yellow-100" : "hover:bg-slate-50"}`}>
-                          <td className={gridCell} onClick={(e) => e.stopPropagation()}>
-                            <input type="checkbox" checked={checked.includes(r.id)} disabled={isDone} onChange={() => toggleCheck(r.id)} className="h-3.5 w-3.5 accent-[#F26522]" />
-                          </td>
-                          {cfg.columns.map((c) => (
-                            <td key={c} className={`${gridCell} ${rightCol(c) ? "text-right" : ""}`}>{renderMainCell(r, c)}</td>
-                          ))}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                {gridFooter(mainTotal, rows.length)}
-                {mainNote && loaded && <p className="border-t border-slate-100 px-3 py-1.5 text-[11px] text-slate-400">{mainNote}</p>}
-                <p className="border-t border-slate-100 px-3 py-1.5 text-right text-[11px] text-slate-400">{t(lang, "完成", "완료", "Done")} {completed.length} / {rows.length}</p>
+              <div className="flex shrink-0 flex-wrap gap-2">
+                {cfg.buttons.map((b) => (
+                  <button key={b} onClick={b === "조회" ? doSearch : b === cfg.primary ? doPrimary : unsupported} className="rounded-lg px-3.5 py-2 text-xs font-black text-white transition hover:opacity-90" style={{ background: b === cfg.primary ? ORANGE : b === "조회" ? "#3A4356" : "#94A3B8" }}>
+                    {b === "조회" && loading ? t(lang, "查询中...", "조회 중...", "Loading...") : b}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm">
+                <div className="shrink-0 border-b border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-black text-slate-700">{cfg.tabs[0]}</div>
+                <div className="min-h-0 flex-1 overflow-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr>
+                        <th className={gridHead}></th>
+                        {cfg.columns.map((c) => <th key={c} className={gridHead}>{c}</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {!loaded && (
+                        <tr><td colSpan={cfg.columns.length + 1} className="px-3 py-8 text-center text-sm text-slate-400">{loading ? t(lang, "加载中…", "불러오는 중…", "Loading…") : t(lang, "点击查询后显示练习数据。", "조회를 누르면 연습 데이터가 표시됩니다.", "Press 조회 to load practice data.")}</td></tr>
+                      )}
+                      {loaded && rows.map((r) => {
+                        const isDone = completed.includes(r.id);
+                        const isSel = selectedId === r.id;
+                        return (
+                          <tr key={r.id} onClick={() => setSelectedId(r.id)} className={`cursor-pointer ${isDone ? "bg-emerald-50 text-slate-400" : isSel ? "bg-yellow-100" : "hover:bg-slate-50"}`}>
+                            <td className={gridCell} onClick={(e) => e.stopPropagation()}>
+                              <input type="checkbox" checked={checked.includes(r.id)} disabled={isDone} onChange={() => toggleCheck(r.id)} className="h-3.5 w-3.5 accent-[#F26522]" />
+                            </td>
+                            {cfg.columns.map((c) => (
+                              <td key={c} className={`${gridCell} ${rightCol(c) ? "text-right" : ""}`}>{renderMainCell(r, c)}</td>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="shrink-0">{gridFooter(mainTotal, rows.length)}</div>
+                {mainNote && loaded && <p className="shrink-0 border-t border-slate-100 px-3 py-1.5 text-[11px] text-slate-400">{mainNote}</p>}
+                <p className="shrink-0 border-t border-slate-100 px-3 py-1.5 text-right text-[11px] text-slate-400">{t(lang, "完成", "완료", "Done")} {completed.length} / {rows.length}</p>
               </div>
 
               {cfg.detailColumns.length > 0 && (
-                <div className="mt-3 overflow-x-auto rounded-lg border border-slate-300 bg-white shadow-sm">
-                  <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-3 py-1.5">
+                <div className="flex h-[34%] shrink-0 flex-col overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm">
+                  <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50 px-3 py-1.5">
                     <span className="text-xs font-black text-slate-700">{cfg.tabs[1] || "아이템 리스트"}</span>
                     <span className="flex gap-1.5">
                       {(cfg.detailButtons || []).map((b) => (
@@ -2906,40 +2921,42 @@ function GridSimulator({ lang, item, cfg, onBack, notify }) {
                       ))}
                     </span>
                   </div>
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr>
-                        <th className={gridHead}></th>
-                        {cfg.detailColumns.map((c) => <th key={c} className={gridHead}>{c}</th>)}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {!loaded && (
-                        <tr><td colSpan={cfg.detailColumns.length + 1} className="px-3 py-8 text-center text-sm text-slate-400">{t(lang, "点击查询后显示练习数据。", "조회를 누르면 연습 데이터가 표시됩니다.", "Press 조회 to load practice data.")}</td></tr>
-                      )}
-                      {loaded && !selectedRow && (
-                        <tr><td colSpan={cfg.detailColumns.length + 1} className="px-3 py-8 text-center text-sm text-slate-400">{t(lang, "在主表选择一行查看明细。", "목록에서 행을 선택하면 상세 내용이 표시됩니다.", "Select a row in the main list to see its details.")}</td></tr>
-                      )}
-                      {loaded && selectedRow && detailRows.map((d) => (
-                        <tr key={d.id} className="hover:bg-slate-50">
-                          <td className={gridCell}></td>
-                          {cfg.detailColumns.map((c) => (
-                            <td key={c} className={`${gridCell} ${rightCol(c) ? "text-right" : ""}`}>{renderDetailCell(d, c)}</td>
-                          ))}
+                  <div className="min-h-0 flex-1 overflow-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr>
+                          <th className={gridHead}></th>
+                          {cfg.detailColumns.map((c) => <th key={c} className={gridHead}>{c}</th>)}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {gridFooter(cfg.detailRows == null ? detailRows.length : cfg.detailRows, detailRows.length)}
+                      </thead>
+                      <tbody>
+                        {!loaded && (
+                          <tr><td colSpan={cfg.detailColumns.length + 1} className="px-3 py-8 text-center text-sm text-slate-400">{t(lang, "点击查询后显示练习数据。", "조회를 누르면 연습 데이터가 표시됩니다.", "Press 조회 to load practice data.")}</td></tr>
+                        )}
+                        {loaded && !selectedRow && (
+                          <tr><td colSpan={cfg.detailColumns.length + 1} className="px-3 py-8 text-center text-sm text-slate-400">{t(lang, "在主表选择一行查看明细。", "목록에서 행을 선택하면 상세 내용이 표시됩니다.", "Select a row in the main list to see its details.")}</td></tr>
+                        )}
+                        {loaded && selectedRow && detailRows.map((d) => (
+                          <tr key={d.id} className="hover:bg-slate-50">
+                            <td className={gridCell}></td>
+                            {cfg.detailColumns.map((c) => (
+                              <td key={c} className={`${gridCell} ${rightCol(c) ? "text-right" : ""}`}>{renderDetailCell(d, c)}</td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="shrink-0">{gridFooter(cfg.detailRows == null ? detailRows.length : cfg.detailRows, detailRows.length)}</div>
                 </div>
               )}
 
               {cfg.tabs.length > 2 && (
-                <div className="mt-3 rounded-lg border border-dashed border-slate-300 bg-white px-4 py-3 text-[13px] text-slate-400 shadow-sm">
+                <div className="shrink-0 rounded-lg border border-dashed border-slate-300 bg-white px-4 py-3 text-[13px] text-slate-400 shadow-sm">
                   {cfg.tabs[2]} — {t(lang, "该标签页在本次学习中未展开，模拟器准备中。", "이 탭은 이번 학습에서 확인하지 못했습니다. 준비 중입니다.", "This tab was not covered in the learning pass — in preparation.")}
                 </div>
               )}
-            </>
+            </div>
           )}
         </main>
       </div>
@@ -2967,6 +2984,7 @@ function GridSimulator({ lang, item, cfg, onBack, notify }) {
     </div>
   );
 }
+
 
 function GenericSimulator({ lang, item, onBack, notify }) {
   if (!item) return null;
