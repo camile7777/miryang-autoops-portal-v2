@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Search,
   Home,
@@ -29,6 +29,10 @@ import {
   Languages,
   ShieldCheck,
   Clock,
+  Printer,
+  Save,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -623,7 +627,7 @@ const sopItems = [
       { ko: "조건값 입력 검색", zh: "输入条件值检索", dko: "필수입력 값 : 출하지점, 납품요청일", dzh: "必填项：出货地点、交货请求日" },
       { ko: "삭제 오더 체크 클릭", zh: "勾选要删除的订单", dko: "삭제할 오더를 체크합니다.", dzh: "勾选要删除的订单。" },
       { ko: "운반비 문서 변경 클릭", zh: "点击运费单据变更", dko: "운반비 문서 변경을 클릭합니다.", dzh: "点击运费单据变更。" },
-      { ko: "휴지통 클릭", zh: "点击回收站图标", dko: "휴지통 아이콘을 클릭합니다.", dzh: "点击回收站图标。" },
+      { ko: "휴지통 클릭", zh: "点击回收站图标", dko: "휴지통 아이콘을 클릭합니다.", dzh: "点击回收站图标。", caution: true },
       { ko: "완료", zh: "完成", dko: "삭제 완료를 확인합니다.", dzh: "确认删除完成。" },
     ],
   },
@@ -1258,7 +1262,7 @@ function Sidebar({ lang, category, setCategory, counts }) {
 }
 
 /* ---------------- portal: briefing panel ---------------- */
-function BriefingPanel({ lang, item, onOpenDetail, onOpenSimulator }) {
+function BriefingPanel({ lang, item, allItems, onOpenDetail, onOpenSimulator }) {
   if (!item) {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-400 shadow-sm">
@@ -1279,11 +1283,11 @@ function BriefingPanel({ lang, item, onOpenDetail, onOpenSimulator }) {
       <p className="mt-1 text-xs text-slate-400">
         SOP · {t(lang, cat?.zh, cat?.ko, cat?.en)} · {t(lang, item.centerZh, item.centerKo, item.centerKo)}
       </p>
-      <p className="mt-3 text-sm leading-6 text-slate-600">{t(lang, item.descZh, item.descKo, item.descKo)}</p>
+      <p className="mt-3 text-sm leading-6 text-slate-600">{renderLinkedText(t(lang, item.descZh, item.descKo, item.descKo), lang, allItems, onOpenDetail)}</p>
 
       <div className="mt-5 border-t border-slate-100 pt-4">
         <p className="text-sm font-black text-slate-800">{t(lang, "开始前准备", "시작 전 준비", "Before You Start")}</p>
-        <p className="mt-1.5 text-sm text-slate-500">{t(lang, item.scopeZh, item.scopeKo, item.scopeKo)}</p>
+        <p className="mt-1.5 text-sm leading-6 text-slate-500">{renderLinkedText(t(lang, item.scopeZh, item.scopeKo, item.scopeKo), lang, allItems, onOpenDetail)}</p>
       </div>
 
       <div className="mt-4 border-t border-slate-100 pt-4">
@@ -1347,27 +1351,364 @@ function BriefingPanel({ lang, item, onOpenDetail, onOpenSimulator }) {
 }
 
 /* ---------------- portal: SOP detail modal (flowchart) ---------------- */
-function SopDetailModal({ lang, item, onClose, onOpenSimulator, onSwitchItem, notify }) {
-  const [tab, setTab] = useState("steps");
-  const [stepIdx, setStepIdx] = useState(0);
-  const steps = item.steps;
-  const cur = steps[stepIdx];
-  const cat = categories.find((c) => c.key === item.category);
-  const related = sopItems.filter((x) => x.category === item.category && x.code !== item.code);
+/* ---------------- SOP edits + favorites (PR Desk-style, local save) ---------------- */
+/* The portal is a static site: edits and favorites live in this browser's
+   localStorage. Nothing is written back to the repo or to PR Desk. */
+const FAV_KEY = "sop-favorites-v1";
+const OVERRIDE_KEY = "sop-overrides-v1";
+const SYS_CHIPS = ["WMS", "WCS", "RCP", "SAP", "MES", "현장", "관리자"];
+function loadLs(key, fallback) {
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+function saveLs(key, value) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {}
+}
+function defaultSysFor(item) {
+  return item && item.category === "system" ? "SAP" : "WMS";
+}
+function stepSys(step, item) {
+  return (step && step.sys) || defaultSysFor(item);
+}
+function applyOverrides(items, overrides) {
+  const map = overrides || {};
+  const merged = items.map((x) => (map[x.code] ? { ...x, ...map[x.code] } : x));
+  Object.keys(map).forEach((code) => {
+    if (!items.some((x) => x.code === code) && map[code] && map[code].isNew) merged.push(map[code]);
+  });
+  return merged;
+}
+function cleanStep(s) {
+  return {
+    ko: (s.ko || "").trim(),
+    zh: (s.zh || s.ko || "").trim(),
+    dko: (s.dko || "").trim(),
+    dzh: (s.dzh || s.dko || "").trim(),
+    sys: (s.sys || "").trim(),
+    caution: !!s.caution,
+    exc: !!s.exc,
+  };
+}
+function nextUserCode(allItems) {
+  const codes = new Set((allItems || []).map((x) => x.code));
+  let n = 1;
+  while (codes.has("USR-" + String(n).padStart(2, "0"))) n++;
+  return "USR-" + String(n).padStart(2, "0");
+}
+/* @[CODE] tokens in scope/purpose text are real links to that SOP's detail.
+   New tokens are "@[CODE]" only; old tokens were "@[CODE] title" (title typed
+   out as plain text). The parser accepts both: a trailing title that matches
+   the target's own title is swallowed so it is not shown twice. Pure function
+   (no JSX) so it can be unit-tested in node. */
+function parseLinkedTokens(text, allItems) {
+  const s = String(text || "");
+  const re = /@\[([A-Z0-9-]+)\]/g;
+  const out = [];
+  const pushText = (t0) => {
+    if (!t0) return;
+    const lastP = out[out.length - 1];
+    if (lastP && lastP.type === "text") lastP.text += t0;
+    else out.push({ type: "text", text: t0 });
+  };
+  let last = 0;
+  let m;
+  while ((m = re.exec(s))) {
+    if (m.index > last) pushText(s.slice(last, m.index));
+    const target = (allItems || []).find((x) => x.code === m[1]);
+    let end = re.lastIndex;
+    if (target) {
+      const rest = s.slice(end);
+      const titles = [target.titleKo, target.titleZh].filter(Boolean);
+      for (const tt of titles) {
+        if (rest.startsWith(" " + tt)) {
+          const after = rest[1 + tt.length];
+          if (after === undefined || !/[A-Za-z0-9가-힣一-鿿]/.test(after)) {
+            end += 1 + tt.length;
+            break;
+          }
+        }
+      }
+      out.push({ type: "link", code: target.code, item: target });
+    } else {
+      pushText(m[0]);
+    }
+    last = end;
+    re.lastIndex = end;
+  }
+  if (last < s.length) pushText(s.slice(last));
+  return out;
+}
+/* Renders text with @[CODE] tokens as clickable chips. onOpen may be null
+   (edit-mode preview) — then chips render as static labels, not buttons. */
+function renderLinkedText(text, lang, allItems, onOpen) {
+  return parseLinkedTokens(text, allItems).map((p, i) => {
+    if (p.type !== "link") return <span key={i}>{p.text}</span>;
+    const label = `[${p.code}] ${t(lang, p.item.titleZh, p.item.titleKo, p.item.titleKo)}`;
+    if (!onOpen) {
+      return (
+        <span key={i} className="mx-0.5 inline-flex items-center gap-1 rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-xs font-bold text-orange-600">
+          <FileText size={11} />
+          {label}
+        </span>
+      );
+    }
+    return (
+      <button
+        key={i}
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpen(p.item);
+        }}
+        className="mx-0.5 inline-flex items-center gap-1 rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-xs font-bold text-orange-600 transition hover:bg-orange-100"
+        title={label}
+      >
+        <FileText size={11} />
+        {label}
+      </button>
+    );
+  });
+}
+/* 텍스트로 절차 만들기: one line (or one ">" menu path) per step.
+   Splits a paragraph into sentences on . 。 ! ? and on 다음 / 그 다음 / 그리고.
+   Step titles come only from the typed text — nothing is invented. */
+function parseFlowText(text, item) {
+  const defSys = defaultSysFor(item);
+  const sysOf = (seg, def) => {
+    const m = /(WMS|WCS|RCP|SAP|MES)/i.exec(seg);
+    if (m) return m[1].toUpperCase();
+    if (/현장/.test(seg)) return "현장";
+    if (/관리자/.test(seg)) return "관리자";
+    return def;
+  };
+  const chunks = []; // { text, sys }
+  const pushChunk = (c, def) => {
+    let v = c.trim().replace(/^(\d+[.)、]|[①②③④⑤⑥⑦⑧⑨⑩]|첫째|둘째|셋째|넷째|다섯째)\s*/, "");
+    if (!v) return;
+    const sys = sysOf(v, def);
+    v = v.replace(/^(WMS|WCS|RCP|SAP|MES)\s*[-–:]\s*/i, "");
+    if (v) chunks.push({ text: v, sys });
+  };
+  const lines = String(text || "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  lines.forEach((line) => {
+    if (line.includes(">")) {
+      const m = /^(WMS|WCS|RCP|SAP|MES)\s*[-–:]/i.exec(line);
+      const lineDef = m ? m[1].toUpperCase() : defSys;
+      line.split(">").forEach((seg) => pushChunk(seg, lineDef));
+    } else {
+      line
+        .split(/(?<=[.。!?\n])\s+|\s+다음\s+|\s+그\s*다음\s+|\s+그리고\s+/)
+        .map((p) => p.trim())
+        .filter(Boolean)
+        .forEach((p) => pushChunk(p, defSys));
+    }
+  });
+  return chunks.map(({ text: c, sys }) => {
+    const title = c.length > 24 ? c.slice(0, 24) + "…" : c;
+    return { ko: title, zh: title, dko: c, dzh: c, sys, caution: false, exc: false };
+  });
+}
 
-  const tabs = [
+/* Shared flowchart node (detail view + edit view). Caution = red + ⚠ (PR Desk),
+   exception = amber dashed + 예외 chip, selected = dark border.
+   num: display number (defaults to i+1); compact: full-width node for the
+   exception column; excColumn: node already sits in the 예외 column, so the
+   in-node 예외 chip is redundant and hidden. */
+function FlowStepNode({ lang, s, i, num, compact, excColumn, selected, item, onClick }) {
+  const sys = stepSys(s, item);
+  const style = s.caution
+    ? "border-red-300 bg-red-50 shadow-sm"
+    : s.exc
+      ? "border-dashed border-amber-400 bg-amber-50/60"
+      : selected
+        ? "border-[#232C3D] bg-slate-50 shadow-sm"
+        : "border-slate-200 bg-white hover:border-slate-300";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`relative rounded-xl border-2 px-4 py-3 text-center transition ${compact ? "w-full" : "w-72"} ${style}`}
+    >
+      {s.caution && (
+        <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white">
+          <AlertTriangle size={12} />
+        </span>
+      )}
+      <p className="text-[11px] font-black" style={{ color: selected ? ORANGE : "#94A3B8" }}>
+        {num || String(i + 1).padStart(2, "0")}
+        {!excColumn && s.exc ? (
+          <span className="ml-1 rounded bg-amber-100 px-1 py-0.5 text-[10px] font-black text-amber-700">
+            {t(lang, "例外", "예외", "Exception")}
+          </span>
+        ) : null}
+      </p>
+      <p className="mt-0.5 text-sm font-black text-slate-800">{t(lang, s.zh || s.ko, s.ko, s.ko)}</p>
+      <p className="text-[11px] text-slate-400">{sys}</p>
+    </button>
+  );
+}
+function FlowArrow() {
+  return (
+    <div className="flex flex-col items-center py-1 text-slate-300">
+      <span className="h-4 w-px bg-slate-300" />
+      <ChevronDown size={14} />
+    </div>
+  );
+}
+
+/* ---------------- SOP edit modal (PR Desk SOP 수정) ---------------- */
+function SopEditModal({ lang, item, isNew, allItems, hasOverride, onClose, onSave, onReset, notify }) {
+  const blank = {
+    code: "",
+    titleKo: "",
+    titleZh: "",
+    category: "operation",
+    centerKo: "미지정",
+    centerZh: "未指定",
+    docType: "SOP",
+    importance: "Medium",
+    prepKo: "",
+    prepZh: "",
+    scopeKo: "",
+    scopeZh: "",
+    descKo: "",
+    descZh: "",
+    cautionKo: "",
+    cautionZh: "",
+    tags: [],
+    steps: [],
+    relatedCodes: null,
+  };
+  const initDraft = (src) => ({
+    code: src.code || "",
+    titleKo: src.titleKo || "",
+    titleZh: src.titleZh || "",
+    category: src.category || "operation",
+    centerKo: src.centerKo || "미지정",
+    centerZh: src.centerZh || "未指定",
+    docType: src.docType || "SOP",
+    importance: src.importance || "Medium",
+    prepKo: src.prepKo || "",
+    prepZh: src.prepZh || "",
+    scopeKo: src.scopeKo || "",
+    scopeZh: src.scopeZh || "",
+    descKo: src.descKo || "",
+    descZh: src.descZh || "",
+    cautionKo: src.cautionKo || "",
+    cautionZh: src.cautionZh || "",
+    tags: [...(src.tags || [])],
+    steps: (src.steps || []).map(cleanStep),
+    relatedCodes: src.relatedCodes ? [...src.relatedCodes] : null,
+  });
+  const [draft, setDraft] = useState(() => (isNew ? { ...blank, code: nextUserCode(allItems) } : initDraft(item)));
+  const [tab, setTab] = useState("info");
+  const [stepIdx, setStepIdx] = useState(0);
+  const [flowText, setFlowText] = useState("");
+  const [linkFor, setLinkFor] = useState(null);
+  const [relQuery, setRelQuery] = useState("");
+  const set = (patch) => setDraft((d) => ({ ...d, ...patch }));
+  const setStep = (i, patch) =>
+    setDraft((d) => ({ ...d, steps: d.steps.map((s, j) => (j === i ? { ...s, ...patch } : s)) }));
+  const cur = draft.steps[stepIdx];
+  const mainSteps = draft.steps.map((s, i) => ({ s, i })).filter(({ s }) => !s.exc);
+  const excSteps = draft.steps.map((s, i) => ({ s, i })).filter(({ s }) => s.exc);
+  const relDefault = (allItems || [])
+    .filter((x) => x.category === draft.category && x.code !== draft.code)
+    .map((x) => x.code);
+  const relCodes = draft.relatedCodes || relDefault;
+  const editTabs = [
+    { key: "info", ko: "기본 정보", zh: "基本信息", en: "Basic Info" },
     { key: "steps", ko: "작업 절차", zh: "操作流程", en: "Procedure" },
     { key: "caution", ko: "주의사항", zh: "注意事项", en: "Cautions" },
-    { key: "history", ko: "수정 이력", zh: "修订记录", en: "History" },
     { key: "related", ko: "관련 문서", zh: "相关文档", en: "Related" },
   ];
+  const inputCls =
+    "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-orange-300";
+  const labelCls = "mb-1.5 block text-xs font-bold text-slate-500";
+
+  const doGenerate = () => {
+    const steps = parseFlowText(flowText, { category: draft.category });
+    if (!steps.length) {
+      notify(t(lang, "请先在文本框里写一段流程描述", "절차 내용을 먼저 입력하세요", "Type the procedure first"));
+      return;
+    }
+    set({ steps });
+    setStepIdx(0);
+    notify(t(lang, `已生成 ${steps.length} 个步骤`, `${steps.length}개의 단계가 생성되었습니다`, `${steps.length} steps generated`));
+  };
+  const addStep = (exc) => {
+    const s = { ko: "", zh: "", dko: "", dzh: "", sys: defaultSysFor({ category: draft.category }), caution: false, exc: !!exc };
+    set({ steps: [...draft.steps, s] });
+    setStepIdx(draft.steps.length);
+  };
+  const delStep = () => {
+    if (!cur) return;
+    set({ steps: draft.steps.filter((_, j) => j !== stepIdx) });
+    setStepIdx(Math.max(0, stepIdx - 1));
+  };
+  const doSave = () => {
+    if (!draft.titleKo.trim()) {
+      notify(t(lang, "请先填写标题", "제목을 입력하세요", "Enter a title first"));
+      return;
+    }
+    if (!draft.steps.length) {
+      notify(t(lang, "至少需要一个步骤", "단계를 최소 1개 추가하세요", "Add at least one step"));
+      return;
+    }
+    const out = {
+      ...item,
+      ...draft,
+      tags: draft.tags.filter((tg) => tg.trim()),
+      steps: draft.steps.map(cleanStep),
+      isNew: !!isNew,
+    };
+    onSave(out);
+  };
+  const linkPicker = (field) => {
+    if (linkFor !== field) return null;
+    return (
+      <div className="mt-1.5 max-h-44 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg">
+        {(allItems || []).map((x) => (
+          <button
+            key={x.code}
+            type="button"
+            onClick={() => {
+              const token = ` @[${x.code}]`;
+              set({ [field]: (draft[field] || "") + token });
+              setLinkFor(null);
+            }}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition hover:bg-orange-50"
+          >
+            <FileText size={13} style={{ color: ORANGE }} />
+            <span className="font-bold text-slate-700">[{x.code}]</span>
+            <span className="truncate text-slate-500">{t(lang, x.titleZh, x.titleKo, x.titleKo)}</span>
+          </button>
+        ))}
+      </div>
+    );
+  };
+  const linkBtn = (field) => (
+    <button
+      type="button"
+      onClick={() => setLinkFor(linkFor === field ? null : field)}
+      className={`mt-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold transition ${linkFor === field ? "border-orange-300 bg-orange-50 text-orange-600" : "border-slate-200 text-slate-500 hover:border-orange-200 hover:text-orange-600"}`}
+    >
+      @ {t(lang, "关联文档", "문서 연결", "Link doc")}
+    </button>
+  );
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 md:p-6"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-3 md:p-6"
       onClick={onClose}
     >
       <motion.div
@@ -1382,29 +1723,24 @@ function SopDetailModal({ lang, item, onClose, onOpenSimulator, onSwitchItem, no
         <div className="border-b border-slate-100 px-6 pt-5">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs text-slate-400">
-                {t(lang, cat?.zh, cat?.ko, cat?.en)} · {t(lang, "修订", "개정", "Rev.")} {item.revised}
-              </p>
-              <h3 className="mt-1 text-2xl font-black text-slate-900">
-                [{item.code}] {t(lang, item.titleZh, item.titleKo, item.titleKo)}
+              <h3 className="text-xl font-black text-slate-900">
+                {isNew ? t(lang, "登记文档", "문서 등록", "New Document") : t(lang, "编辑 SOP", "SOP 수정", "Edit SOP")}
+                {!isNew && <span className="ml-2 text-sm font-bold text-slate-400">[{draft.code}]</span>}
+                {isNew && <span className="ml-2 text-sm font-bold text-slate-400">[{draft.code}]</span>}
               </h3>
+              <p className="mt-1 text-xs text-slate-400">
+                {t(lang, "保存后仅保存在当前浏览器中，不会改动 PR Desk 或仓库。", "저장은 이 브라우저에만 저장되며 PR Desk나 저장소는 바뀌지 않습니다.", "Saved only in this browser — PR Desk and the repo are untouched.")}
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => notify(t(lang, "已加入收藏（演示）", "즐겨찾기에 추가되었습니다 (데모)", "Bookmarked (demo)"))} className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
-                <Bookmark size={14} /> {t(lang, "收藏", "즐겨찾기", "Bookmark")}
-              </button>
-              <button onClick={() => notify(t(lang, "编辑功能准备中", "편집 기능 준비 중입니다", "Editing in preparation"))} className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
-                <Pencil size={14} /> {t(lang, "编辑", "편집", "Edit")}
-              </button>
-              <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50">
-                <X size={16} />
-              </button>
-            </div>
+            <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50">
+              <X size={16} />
+            </button>
           </div>
           <div className="mt-4 flex gap-5">
-            {tabs.map((tb) => (
+            {editTabs.map((tb) => (
               <button
                 key={tb.key}
+                type="button"
                 onClick={() => setTab(tb.key)}
                 className={`border-b-2 pb-2.5 text-sm font-bold transition ${tab === tb.key ? "border-slate-900 text-slate-900" : "border-transparent text-slate-400 hover:text-slate-600"}`}
               >
@@ -1416,65 +1752,279 @@ function SopDetailModal({ lang, item, onClose, onOpenSimulator, onSwitchItem, no
 
         {/* body */}
         <div className="flex-1 overflow-y-auto px-6 py-6">
-          {tab === "steps" && (
-            <div className="grid gap-8 md:grid-cols-[1fr_320px]">
-              {/* flowchart */}
-              <div className="flex flex-col items-center">
-                <div className="rounded-full bg-[#232C3D] px-10 py-2.5 text-sm font-black text-white">
-                  {t(lang, "开始", "시작", "Start")}
+          {tab === "info" && (
+            <div className="mx-auto max-w-3xl space-y-5">
+              <p className="text-xs font-bold text-slate-400">{t(lang, "韩文原文编辑", "한국어 원문 편집", "Edit Korean original")}</p>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <label className={labelCls}>{t(lang, "文档类型", "문서 유형", "Doc Type")}</label>
+                  <select value={draft.docType} onChange={(e) => set({ docType: e.target.value })} className={inputCls}>
+                    {["SOP", "매뉴얼", "체크리스트", "가이드"].map((o) => (
+                      <option key={o} value={o}>{o}</option>
+                    ))}
+                  </select>
                 </div>
-                {steps.map((s, i) => (
-                  <React.Fragment key={i}>
-                    <div className="flex flex-col items-center py-1 text-slate-300">
-                      <span className="h-4 w-px bg-slate-300" />
-                      <ChevronDown size={14} />
-                    </div>
-                    <button
-                      onClick={() => setStepIdx(i)}
-                      className={`w-72 rounded-xl border-2 px-4 py-3 text-center transition ${i === stepIdx ? "border-[#232C3D] bg-slate-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300"}`}
-                    >
-                      <p className="text-[11px] font-black" style={{ color: i === stepIdx ? ORANGE : "#94A3B8" }}>
-                        {String(i + 1).padStart(2, "0")}
-                      </p>
-                      <p className="mt-0.5 text-sm font-black text-slate-800">{t(lang, s.zh, s.ko, s.ko)}</p>
-                      <p className="text-[11px] text-slate-400">WMS</p>
-                    </button>
-                  </React.Fragment>
-                ))}
+                <div>
+                  <label className={labelCls}>{t(lang, "适用中心", "적용 센터", "Center")}</label>
+                  <input value={draft.centerKo} onChange={(e) => set({ centerKo: e.target.value, centerZh: e.target.value })} className={inputCls} placeholder={t(lang, "未指定 / 通用 / 密阳中心等", "미지정 / 공통 / 밀양센터 등", "All / Common / Miryang Center")} />
+                </div>
+                <div>
+                  <label className={labelCls}>{t(lang, "开始前准备（每行一项）", "시작 전 준비 (한 줄에 항목·내용)", "Before Start")}</label>
+                  <textarea value={draft.prepKo} onChange={(e) => set({ prepKo: e.target.value })} className={inputCls} rows={2} placeholder={t(lang, "日程：出库日、进车时间\n物量：产品、数量", "일정: 출고일·입차 시간\n물량: 제품·수량", "Schedule: date / Volume: items")} />
+                </div>
               </div>
-              {/* step description */}
-              <div className="border-l border-slate-100 pl-6">
-                <p className="text-xs text-slate-400">{t(lang, "用户添加的知识条目", "사용자가 추가한 지식 항목", "User-added knowledge item")}</p>
-                <p className="mt-2 text-xs text-slate-400">
-                  {t(lang, "适用范围", "적용 범위", "Scope")} · {t(lang, item.scopeZh, item.scopeKo, item.scopeKo)}
-                </p>
-                <div className="mt-5 border-t border-slate-100 pt-4">
-                  <p className="text-xs font-bold text-slate-400">{t(lang, "步骤说明", "단계 설명", "Step Description")}</p>
-                  <p className="mt-2 text-base font-black text-slate-900">{t(lang, cur.zh, cur.ko, cur.ko)}</p>
-                  <p className="mt-1 text-xs text-slate-400">WMS</p>
-                  <p className="mt-3 text-sm leading-6 text-slate-600">{t(lang, cur.dzh, cur.dko, cur.dko)}</p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className={labelCls}>{t(lang, "所属分类", "소속 분류", "Category")}</label>
+                  <select value={draft.category} onChange={(e) => set({ category: e.target.value })} className={inputCls}>
+                    {categories.filter((c) => c.key !== "all").map((c) => (
+                      <option key={c.key} value={c.key}>{t(lang, c.zh, c.ko, c.en)}</option>
+                    ))}
+                  </select>
                 </div>
-                {item.hasSimulator && (
-                  <button
-                    onClick={() => onOpenSimulator(item)}
-                    className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black text-white transition hover:opacity-90"
-                    style={{ background: ORANGE }}
-                  >
-                    <Play size={16} />
-                    {t(lang, "打开练习模拟器", "연습 시뮬레이터 열기", "Open Practice Simulator")}
-                  </button>
+                <div>
+                  <label className={labelCls}>{t(lang, "重要度", "중요도", "Importance")}</label>
+                  <select value={draft.importance} onChange={(e) => set({ importance: e.target.value })} className={inputCls}>
+                    <option value="High">{t(lang, "High - 高", "High - 높음", "High")}</option>
+                    <option value="Medium">{t(lang, "Medium - 中", "Medium - 중간", "Medium")}</option>
+                    <option value="Low">{t(lang, "Low - 低", "Low - 낮음", "Low")}</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className={labelCls}>{t(lang, "标题（韩文）", "제목", "Title (KO)")}</label>
+                <input value={draft.titleKo} onChange={(e) => set({ titleKo: e.target.value })} className={inputCls} placeholder="[SAP] 운반비 문서 삭제" />
+              </div>
+              <div>
+                <label className={labelCls}>{t(lang, "标题（中文）", "제목 (중국어)", "Title (ZH)")}</label>
+                <input value={draft.titleZh} onChange={(e) => set({ titleZh: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>{t(lang, "标签（逗号分隔）", "태그", "Tags")}</label>
+                <input
+                  value={draft.tags.join(", ")}
+                  onChange={(e) => set({ tags: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+                  className={inputCls}
+                  placeholder="SAP, 운반비, 문서삭제, 오더취소"
+                />
+              </div>
+              <div>
+                <label className={labelCls}>{t(lang, "适用范围", "적용 범위", "Scope")}</label>
+                <input value={draft.scopeKo} onChange={(e) => set({ scopeKo: e.target.value })} className={inputCls} placeholder={t(lang, "输入内容 - @ 关联 SOP", "내용 입력 - @로 SOP 연결", "Type here - @ to link a SOP")} />
+                {linkBtn("scopeKo")}
+                {linkPicker("scopeKo")}
+                {(draft.scopeKo || "").includes("@[") && (
+                  <p className="mt-2 text-xs leading-6 text-slate-500">
+                    {t(lang, "预览：", "미리보기: ", "Preview: ")}
+                    {renderLinkedText(draft.scopeKo, lang, allItems, null)}
+                  </p>
                 )}
+              </div>
+              <div>
+                <label className={labelCls}>{t(lang, "适用范围（中文）", "적용 범위 (중국어)", "Scope (ZH)")}</label>
+                <input value={draft.scopeZh} onChange={(e) => set({ scopeZh: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>{t(lang, "目的", "목적", "Purpose")}</label>
+                <textarea value={draft.descKo} onChange={(e) => set({ descKo: e.target.value })} className={inputCls} rows={3} placeholder={t(lang, "输入内容 - @ 关联 SOP", "내용 입력 - @로 SOP 연결", "Type here - @ to link a SOP")} />
+                {linkBtn("descKo")}
+                {linkPicker("descKo")}
+                {(draft.descKo || "").includes("@[") && (
+                  <p className="mt-2 text-xs leading-6 text-slate-500">
+                    {t(lang, "预览：", "미리보기: ", "Preview: ")}
+                    {renderLinkedText(draft.descKo, lang, allItems, null)}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className={labelCls}>{t(lang, "目的（中文）", "목적 (중국어)", "Purpose (ZH)")}</label>
+                <textarea value={draft.descZh} onChange={(e) => set({ descZh: e.target.value })} className={inputCls} rows={3} />
+              </div>
+            </div>
+          )}
+
+          {tab === "steps" && (
+            <div>
+              <p className="text-xs font-bold text-slate-400">- {t(lang, "用文字创建流程", "텍스트로 절차 만들기", "Build from Text")}</p>
+              <p className="mt-2 text-sm font-black text-slate-800">
+                {t(lang, "用文字写流程 - 口述即可整理，菜单路径按顺序生成。", "텍스트로 절차 작성 - 말로 쓰면 정리하고, 메뉴 경로는 순서대로 생성합니다.", "Write it in words — it will be tidied up, menu paths generated in order.")}
+              </p>
+              <div className="mt-3 flex gap-3">
+                <textarea
+                  value={flowText}
+                  onChange={(e) => setFlowText(e.target.value)}
+                  className={`${inputCls} flex-1`}
+                  rows={3}
+                  placeholder={t(lang, "例：第一行写标题，下一行写 WMS - 入库管理 > 入库预定 > 查询 > 保存。也可以直接口述流程。", "예: 첫 줄에 제목을 쓰고, 다음 줄에 WMS - 입고관리 > 입고예정 > 조회 > 저장 처럼 입력하세요. 또는 말로 흐름을 적어도 됩니다.", "E.g. first line the title, next line WMS - Inbound > Create ASN > Search > Save. Or just describe the flow in words.")}
+                />
+                <button
+                  type="button"
+                  onClick={doGenerate}
+                  className="shrink-0 self-start rounded-lg bg-slate-900 px-4 py-2.5 text-xs font-black text-white transition hover:bg-slate-700"
+                >
+                  {t(lang, "生成流程", "흐름 생성", "Generate Flow")}
+                </button>
+              </div>
+              <p className="mt-2 text-xs font-bold text-orange-600">
+                {t(lang, "简明表达标准：步骤名要短，让现场一眼看懂；只有出问题的情况才在右侧另列为例外。", "간단한 표현 기준: 현장 시나리오 바로 이해할 수 있게 단계명을 짧게 만들고, 문제가 생기는 경우만 오른쪽 공간에 예외로 분리합니다.", "Keep step names short so the floor can read them at a glance; only problem cases go to the right as exceptions.")}
+              </p>
+              <div className="mt-4 flex items-center gap-2">
+                <button type="button" onClick={() => addStep(false)} className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
+                  <Plus size={14} /> {t(lang, "添加步骤", "단계", "Add Step")}
+                </button>
+                <button type="button" onClick={() => addStep(true)} className="flex items-center gap-1.5 rounded-lg border border-amber-300 px-3 py-2 text-xs font-bold text-amber-700 transition hover:bg-amber-50">
+                  <Plus size={14} /> {t(lang, "添加例外", "예외", "Add Exception")}
+                </button>
+                <button type="button" onClick={delStep} disabled={!cur} className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-500 transition enabled:hover:bg-red-50 disabled:opacity-40">
+                  <Trash2 size={14} /> {t(lang, "删除", "삭제", "Delete")}
+                </button>
+                <span className="ml-auto text-xs text-slate-400">{t(lang, "点选步骤，在右侧编辑", "단계를 선택해 오른쪽에서 수정하세요", "Select a step to edit it on the right")}</span>
+              </div>
+              <div className="mt-4 grid gap-8 md:grid-cols-[1fr_320px]">
+                <div className={excSteps.length ? "grid items-start gap-6 md:grid-cols-[1fr_220px]" : "flex flex-col items-center"}>
+                  <div className="flex flex-col items-center">
+                    <div className="rounded-full bg-[#232C3D] px-10 py-2.5 text-sm font-black text-white">
+                      {t(lang, "开始", "시작", "Start")}
+                    </div>
+                    {mainSteps.map(({ s, i }, j) => (
+                      <React.Fragment key={i}>
+                        <FlowArrow />
+                        <FlowStepNode lang={lang} s={s} i={i} num={String(j + 1).padStart(2, "0")} selected={i === stepIdx} item={{ category: draft.category }} onClick={() => setStepIdx(i)} />
+                      </React.Fragment>
+                    ))}
+                    {draft.steps.length === 0 && (
+                      <p className="mt-6 text-sm text-slate-400">{t(lang, "还没有步骤：先在上面写一段话并点「生成流程」，或点「添加步骤」。", "아직 단계가 없습니다. 위에서 말로 적고 흐름 생성을 누르거나 단계를 추가하세요.", "No steps yet — describe the flow above and generate, or add a step.")}</p>
+                    )}
+                  </div>
+                  {excSteps.length > 0 && (
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4">
+                      <p className="text-center text-xs font-black text-amber-700">{t(lang, "例外情况", "예외", "Exceptions")}</p>
+                      <p className="mt-1 text-center text-[11px] leading-4 text-amber-600/80">
+                        {t(lang, "出问题时才走的分支，不占主流程编号。", "문제가 생겼을 때만 진행하는 분기로, 주 흐름 번호를 차지하지 않습니다.", "Branches taken only when something goes wrong — they don't take main-flow numbers.")}
+                      </p>
+                      <div className="mt-3 flex flex-col items-center">
+                        {excSteps.map(({ s, i }, j) => (
+                          <React.Fragment key={i}>
+                            {j > 0 && <FlowArrow />}
+                            <FlowStepNode lang={lang} s={s} i={i} num={t(lang, `例外 ${String(j + 1).padStart(2, "0")}`, `예외 ${String(j + 1).padStart(2, "0")}`, `Exception ${String(j + 1).padStart(2, "0")}`)} compact excColumn selected={i === stepIdx} item={{ category: draft.category }} onClick={() => setStepIdx(i)} />
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="border-l border-slate-100 pl-6">
+                  {cur ? (
+                    <div>
+                      <p className="text-xs font-bold text-slate-400">{t(lang, "步骤编辑", "단계 편집", "Edit Step")}</p>
+                      <label className="mt-4 flex items-start gap-2 text-sm text-slate-700">
+                        <input
+                          type="checkbox"
+                          checked={!!cur.caution}
+                          onChange={(e) => setStep(stepIdx, { caution: e.target.checked })}
+                          className="mt-0.5 h-4 w-4 accent-red-500"
+                        />
+                        <span>
+                          <span className="font-bold">{t(lang, "标为注意步骤", "주의 단계로 표시", "Mark as caution step")}</span>
+                          <span className="block text-xs text-slate-400">{t(lang, "图形用黄色/淡红色背景", "도형의 노란색·연한 빨간색 배경", "Yellow / light-red shape background")}</span>
+                        </span>
+                      </label>
+                      <label className="mt-3 flex items-start gap-2 text-sm text-slate-700">
+                        <input
+                          type="checkbox"
+                          checked={!!cur.exc}
+                          onChange={(e) => setStep(stepIdx, { exc: e.target.checked })}
+                          className="mt-0.5 h-4 w-4 accent-amber-500"
+                        />
+                        <span className="font-bold">{t(lang, "标为例外步骤", "예외 단계로 표시", "Mark as exception step")}</span>
+                      </label>
+                      <div className="mt-4">
+                        <label className={labelCls}>{t(lang, "标题（韩文）", "제목", "Title (KO)")}</label>
+                        <input value={cur.ko} onChange={(e) => setStep(stepIdx, { ko: e.target.value })} className={inputCls} />
+                      </div>
+                      <div className="mt-3">
+                        <label className={labelCls}>{t(lang, "标题（中文）", "제목 (중국어)", "Title (ZH)")}</label>
+                        <input value={cur.zh} onChange={(e) => setStep(stepIdx, { zh: e.target.value })} className={inputCls} />
+                      </div>
+                      <div className="mt-3">
+                        <label className={labelCls}>{t(lang, "负责系统 / 条件", "담당 시스템 / 조건", "System / Condition")}</label>
+                        <input value={cur.sys} onChange={(e) => setStep(stepIdx, { sys: e.target.value })} className={inputCls} placeholder="SAP" />
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {SYS_CHIPS.map((c) => (
+                            <button
+                              key={c}
+                              type="button"
+                              onClick={() => setStep(stepIdx, { sys: c })}
+                              className={`rounded-full border px-2.5 py-1 text-[11px] font-bold transition ${cur.sys === c ? "border-orange-300 bg-orange-50 text-orange-600" : "border-slate-200 text-slate-500 hover:border-orange-200 hover:text-orange-600"}`}
+                            >
+                              {c}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <label className={labelCls}>{t(lang, "说明（韩文）", "설명", "Description (KO)")}</label>
+                        <textarea value={cur.dko} onChange={(e) => setStep(stepIdx, { dko: e.target.value })} className={inputCls} rows={3} placeholder={t(lang, "输入处理内容。", "처리 내용을 입력하세요.", "Describe what to do.")}
+                        />
+                      </div>
+                      <div className="mt-3">
+                        <label className={labelCls}>{t(lang, "说明（中文）", "설명 (중국어)", "Description (ZH)")}</label>
+                        <textarea value={cur.dzh} onChange={(e) => setStep(stepIdx, { dzh: e.target.value })} className={inputCls} rows={3} />
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-400">{t(lang, "还没有可编辑的步骤。", "수정할 단계가 없습니다.", "No step to edit yet.")}</p>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
           {tab === "caution" && (
-            <div className="mx-auto max-w-2xl">
-              <div className="rounded-xl bg-amber-50 p-5">
-                <p className="text-sm font-black text-amber-800">{t(lang, "请确认", "확인하세요", "Please Check")}</p>
-                <p className="mt-2 text-sm leading-7 text-amber-700">{t(lang, item.cautionZh, item.cautionKo, item.cautionKo)}</p>
+            <div className="mx-auto max-w-2xl space-y-4">
+              <p className="text-xs leading-5 text-slate-400">
+                {t(lang, "这里的文字显示在详情页「注意事项」标签下。标为注意的步骤会另外列在下面。", "이 내용은 상세 보기 주의사항 탭에 표시됩니다. 주의 단계로 표시된 단계는 아래에 따로 모입니다.", "This text shows on the detail view's Cautions tab. Steps marked as caution are listed below.")}
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className={labelCls}>{t(lang, "注意事项（韩文）", "주의사항", "Cautions (KO)")}</label>
+                  <textarea value={draft.cautionKo} onChange={(e) => set({ cautionKo: e.target.value })} className={inputCls} rows={4} />
+                </div>
+                <div>
+                  <label className={labelCls}>{t(lang, "注意事项（中文）", "주의사항 (중국어)", "Cautions (ZH)")}</label>
+                  <textarea value={draft.cautionZh} onChange={(e) => set({ cautionZh: e.target.value })} className={inputCls} rows={4} />
+                </div>
               </div>
-              <div className="mt-4 rounded-xl bg-slate-50 p-5">
+              {draft.steps.some((s) => s.caution) ? (
+                <div>
+                  <p className="text-sm font-black text-slate-800">
+                    {t(lang, "注意步骤", "주의 단계", "Caution Steps")} · {draft.steps.filter((s) => s.caution).length}
+                  </p>
+                  <div className="mt-2 space-y-2">
+                    {draft.steps.map((s, i) =>
+                      s.caution ? (
+                        <div
+                          key={i}
+                          className="flex w-full items-center gap-2.5 rounded-xl border border-red-200 bg-red-50/60 px-4 py-2.5"
+                        >
+                          <AlertTriangle size={14} className="shrink-0 text-red-500" />
+                          <span className="text-xs font-black text-red-500">{String(i + 1).padStart(2, "0")}</span>
+                          <span className="flex-1 truncate text-sm font-bold text-slate-700">{t(lang, s.zh || s.ko, s.ko, s.ko)}</span>
+                          <span className="text-xs text-slate-400">{stepSys(s, { category: draft.category })}</span>
+                        </div>
+                      ) : null
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs text-slate-400">
+                    {t(lang, "在「操作流程」里点步骤，勾选「标为注意步骤」即可增减。", "작업 절차 탭에서 단계를 선택하고 주의 단계로 표시를 켜거나 꺼서 추가·제거할 수 있습니다.", "Toggle 'Mark as caution step' on a step in the Procedure tab to add or remove it here.")}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-slate-400">
+                  {t(lang, "目前没有标为注意的步骤。在「操作流程」里点步骤，勾选「标为注意步骤」即可添加。", "주의 단계로 표시된 단계가 없습니다. 작업 절차 탭에서 단계를 선택하고 주의 단계로 표시를 켜면 여기에 표시됩니다.", "No caution steps yet. Select a step in the Procedure tab and tick 'Mark as caution step' to add one.")}
+                </p>
+              )}
+              <div className="rounded-xl bg-slate-50 p-5">
                 <p className="text-sm font-black text-slate-800">{t(lang, "现场优先原则", "현장 우선 원칙", "Field-First Principle")}</p>
                 <p className="mt-2 text-sm leading-7 text-slate-600">
                   {t(lang, "先确认实物，再处理系统。所有异常都要留下原因、处理步骤和结果确认。", "실물을 먼저 확인하고 시스템을 처리합니다. 모든 오류는 원인, 조치, 결과를 기록합니다.", "Check the physical goods first, then the system. Record cause, action and result for every error.")}
@@ -1483,62 +2033,337 @@ function SopDetailModal({ lang, item, onClose, onOpenSimulator, onSwitchItem, no
             </div>
           )}
 
-          {tab === "history" && (
-            <div className="mx-auto max-w-2xl space-y-3">
-              <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
-                <span className="text-sm font-bold text-slate-700">{t(lang, "修订", "개정", "Revision")}</span>
-                <span className="text-sm text-slate-400">{item.revised} · {t(lang, "管理员", "관리자", "Admin")}</span>
-              </div>
-              <p className="text-sm text-slate-400">{t(lang, "暂无更多修订记录。", "추가 수정 이력이 없습니다.", "No further revisions.")}</p>
-            </div>
-          )}
-
           {tab === "related" && (
-            <div className="mx-auto max-w-2xl space-y-2">
-              {related.length === 0 && (
-                <p className="text-sm text-slate-400">{t(lang, "暂无相关文档。", "관련 문서가 없습니다.", "No related documents.")}</p>
-              )}
-              {related.map((r) => (
-                <button
-                  key={r.code}
-                  onClick={() => onSwitchItem(r)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 text-left transition hover:border-orange-200 hover:bg-orange-50/40"
-                >
-                  <FileText size={16} style={{ color: ORANGE }} />
-                  <span className="flex-1 text-sm font-bold text-slate-700">[{r.code}] {t(lang, r.titleZh, r.titleKo, r.titleKo)}</span>
-                  <ChevronRight size={15} className="text-slate-300" />
-                </button>
-              ))}
+            <div className="mx-auto max-w-2xl">
+              <p className="text-sm text-slate-500">
+                {t(lang, "勾选要关联到这篇文档的 SOP，关联的文档会显示在详情页「相关文档」里，点一下就能打开。默认关联同分类的全部文档。", "이 문서에 연결할 SOP를 선택하세요. 연결된 문서는 상세 보기 관련 문서 탭에 표시되며, 클릭하면 열립니다. 기본값은 같은 분류의 모든 문서입니다.", "Tick the SOPs to link — they show on the detail view's Related tab, click to open. By default, all SOPs in the same category are linked.")}
+              </p>
+              <div className="mt-4 flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    value={relQuery}
+                    onChange={(e) => setRelQuery(e.target.value)}
+                    className={`${inputCls} pl-9`}
+                    placeholder={t(lang, "搜索编号或标题…", "코드나 제목 검색…", "Search code or title…")}
+                  />
+                </div>
+                <span className="shrink-0 text-xs font-bold text-slate-500">
+                  {t(lang, `已关联 ${relCodes.length} 篇`, `연결됨 ${relCodes.length}개`, `${relCodes.length} linked`)}
+                </span>
+                {draft.relatedCodes && (
+                  <button
+                    type="button"
+                    onClick={() => set({ relatedCodes: null })}
+                    className="shrink-0 rounded-lg border border-slate-200 px-2.5 py-2 text-[11px] font-bold text-slate-500 transition hover:border-orange-200 hover:text-orange-600"
+                  >
+                    {t(lang, "恢复默认", "기본값으로", "Reset to default")}
+                  </button>
+                )}
+              </div>
+              <div className="mt-4 space-y-5">
+                {categories
+                  .filter((c) => c.key !== "all")
+                  .map((cat) => {
+                    const q = relQuery.trim().toLowerCase();
+                    const list = (allItems || []).filter(
+                      (x) =>
+                        x.code !== draft.code &&
+                        x.category === cat.key &&
+                        (!q || [x.code, x.titleKo, x.titleZh].join(" ").toLowerCase().includes(q))
+                    );
+                    if (!list.length) return null;
+                    const linkedCount = list.filter((x) => relCodes.includes(x.code)).length;
+                    return (
+                      <div key={cat.key}>
+                        <p className="mb-2 text-xs font-black text-slate-500">
+                          {t(lang, cat.zh, cat.ko, cat.en)} · {linkedCount}/{list.length}
+                        </p>
+                        <div className="space-y-2">
+                          {list.map((x) => {
+                            const checked = relCodes.includes(x.code);
+                            return (
+                              <label key={x.code} className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 transition hover:border-orange-200">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => {
+                                    const next = checked ? relCodes.filter((c) => c !== x.code) : [...relCodes, x.code];
+                                    set({ relatedCodes: next });
+                                  }}
+                                  className="h-4 w-4 shrink-0 accent-orange-500"
+                                />
+                                <FileText size={15} className="shrink-0" style={{ color: ORANGE }} />
+                                <span className="text-sm font-bold text-slate-700">[{x.code}] {t(lang, x.titleZh, x.titleKo, x.titleKo)}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                {!(allItems || []).some((x) => {
+                  const q = relQuery.trim().toLowerCase();
+                  return x.code !== draft.code && (!q || [x.code, x.titleKo, x.titleZh].join(" ").toLowerCase().includes(q));
+                }) && <p className="text-sm text-slate-400">{t(lang, "没有找到匹配的文档。", "일치하는 문서가 없습니다.", "No matching documents.")}</p>}
+              </div>
             </div>
           )}
         </div>
 
         {/* footer */}
         <div className="flex items-center justify-between border-t border-slate-100 px-6 py-3.5">
-          <span className="text-xs text-slate-400">{t(lang, "更多", "더보기", "More")}</span>
+          <div>
+            {hasOverride && !isNew && (
+              <button type="button" onClick={() => onReset(draft.code)} className="text-xs font-bold text-slate-400 underline underline-offset-4 transition hover:text-red-500">
+                {t(lang, "恢复为原始版本", "원본으로 되돌리기", "Revert to original")}
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setStepIdx((v) => Math.max(0, v - 1))}
-              disabled={stepIdx === 0}
-              className="rounded-lg bg-slate-100 px-3.5 py-2 text-xs font-bold text-slate-600 transition enabled:hover:bg-slate-200 disabled:opacity-40"
-            >
-              {t(lang, "上一步", "이전 단계", "Prev")}
+            <button type="button" onClick={onClose} className="rounded-lg bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-600 transition hover:bg-slate-200">
+              {t(lang, "取消", "취소", "Cancel")}
             </button>
-            <span className="px-1 text-xs font-bold text-slate-500">{stepIdx + 1} / {steps.length}</span>
-            <button
-              onClick={() => setStepIdx((v) => Math.min(steps.length - 1, v + 1))}
-              disabled={stepIdx === steps.length - 1}
-              className="rounded-lg bg-slate-100 px-3.5 py-2 text-xs font-bold text-slate-600 transition enabled:hover:bg-slate-200 disabled:opacity-40"
-            >
-              {t(lang, "下一步", "다음 단계", "Next")}
+            <button type="button" onClick={doSave} className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2.5 text-xs font-black text-white transition hover:bg-slate-700">
+              <Save size={14} /> {t(lang, "保存", "저장", "Save")}
             </button>
           </div>
-          <button onClick={onClose} className="rounded-lg bg-slate-100 px-3.5 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-200">
-            {t(lang, "返回列表", "목록으로", "Back to List")}
-          </button>
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+/* ---------------- SOP detail modal (PR Desk detail view) ---------------- */
+function SopDetailModal({ lang, item, allItems, favs, onToggleFav, onEdit, isEdited, onClose, onOpenSimulator, onSwitchItem, notify }) {
+  const [tab, setTab] = useState("steps");
+  const [stepIdx, setStepIdx] = useState(0);
+  const steps = item.steps || [];
+  const cur = steps[stepIdx] || { ko: "", zh: "", dko: "", dzh: "" };
+  const mainSteps = steps.map((s, i) => ({ s, i })).filter(({ s }) => !s.exc);
+  const excSteps = steps.map((s, i) => ({ s, i })).filter(({ s }) => s.exc);
+  const cat = categories.find((c) => c.key === item.category);
+  const related = item.relatedCodes
+    ? (allItems || []).filter((x) => item.relatedCodes.includes(x.code))
+    : (allItems || []).filter((x) => x.category === item.category && x.code !== item.code);
+  const isFav = (favs || []).includes(item.code);
+
+  const tabs = [
+    { key: "steps", ko: "작업 절차", zh: "操作流程", en: "Procedure" },
+    { key: "caution", ko: "주의사항", zh: "注意事项", en: "Cautions" },
+    { key: "history", ko: "수정 이력", zh: "修订记录", en: "History" },
+    { key: "related", ko: "관련 문서", zh: "相关文档", en: "Related" },
+  ];
+
+  return (
+    <>
+      <style>{`@media print {
+  body * { visibility: hidden !important; }
+  #sop-print-area, #sop-print-area * { visibility: visible !important; }
+  #sop-print-area { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; max-height: none !important; overflow: visible !important; }
+  #sop-print-area * { max-height: none !important; overflow: visible !important; }
+}`}</style>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 md:p-6"
+        onClick={onClose}
+      >
+        <motion.div
+          id="sop-print-area"
+          initial={{ opacity: 0, y: 16, scale: 0.99 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 10 }}
+          transition={{ duration: 0.2 }}
+          className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* header */}
+          <div className="border-b border-slate-100 px-6 pt-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs text-slate-400">
+                  {t(lang, cat?.zh, cat?.ko, cat?.en)} · {t(lang, "修订", "개정", "Rev.")} {item.revised}
+                  {isEdited ? ` · ${t(lang, "已在当前浏览器修改", "이 브라우저에서 수정됨", "Edited in this browser")}` : ""}
+                </p>
+                <h3 className="mt-1 text-2xl font-black text-slate-900">
+                  [{item.code}] {t(lang, item.titleZh, item.titleKo, item.titleKo)}
+                </h3>
+              </div>
+              <div className="flex items-center gap-2 print:hidden">
+                <button
+                  onClick={() => onToggleFav(item.code)}
+                  className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-bold transition ${isFav ? "border-orange-300 bg-orange-50 text-orange-600" : "border-slate-200 text-slate-600 hover:border-orange-200 hover:text-orange-600"}`}
+                >
+                  <Bookmark size={14} fill={isFav ? "currentColor" : "none"} /> {t(lang, "收藏", "즐겨찾기", "Bookmark")}
+                </button>
+                <button onClick={onEdit} className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
+                  <Pencil size={14} /> {t(lang, "编辑", "편집", "Edit")}
+                </button>
+                <button onClick={() => window.print()} className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
+                  <Printer size={14} /> {t(lang, "打印", "인쇄", "Print")}
+                </button>
+                <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50">
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+            <div className="mt-4 flex gap-5 print:hidden">
+              {tabs.map((tb) => (
+                <button
+                  key={tb.key}
+                  onClick={() => setTab(tb.key)}
+                  className={`border-b-2 pb-2.5 text-sm font-bold transition ${tab === tb.key ? "border-slate-900 text-slate-900" : "border-transparent text-slate-400 hover:text-slate-600"}`}
+                >
+                  {t(lang, tb.zh, tb.ko, tb.en)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* body */}
+          <div className="flex-1 overflow-y-auto px-6 py-6">
+            {tab === "steps" && (
+              <div className="grid gap-8 md:grid-cols-[1fr_320px]">
+                {/* flowchart: main flow + exceptions in their own right column (PR Desk) */}
+                <div className={excSteps.length ? "grid items-start gap-6 md:grid-cols-[1fr_220px]" : "flex flex-col items-center"}>
+                  <div className="flex flex-col items-center">
+                    <div className="rounded-full bg-[#232C3D] px-10 py-2.5 text-sm font-black text-white">
+                      {t(lang, "开始", "시작", "Start")}
+                    </div>
+                    {mainSteps.map(({ s, i }, j) => (
+                      <React.Fragment key={i}>
+                        <FlowArrow />
+                        <FlowStepNode lang={lang} s={s} i={i} num={String(j + 1).padStart(2, "0")} selected={i === stepIdx} item={item} onClick={() => setStepIdx(i)} />
+                      </React.Fragment>
+                    ))}
+                  </div>
+                  {excSteps.length > 0 && (
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4">
+                      <p className="text-center text-xs font-black text-amber-700">{t(lang, "例外情况", "예외", "Exceptions")}</p>
+                      <p className="mt-1 text-center text-[11px] leading-4 text-amber-600/80">
+                        {t(lang, "出问题时才走的分支，不占主流程编号。", "문제가 생겼을 때만 진행하는 분기로, 주 흐름 번호를 차지하지 않습니다.", "Branches taken only when something goes wrong — they don't take main-flow numbers.")}
+                      </p>
+                      <div className="mt-3 flex flex-col items-center">
+                        {excSteps.map(({ s, i }, j) => (
+                          <React.Fragment key={i}>
+                            {j > 0 && <FlowArrow />}
+                            <FlowStepNode lang={lang} s={s} i={i} num={t(lang, `例外 ${String(j + 1).padStart(2, "0")}`, `예외 ${String(j + 1).padStart(2, "0")}`, `Exception ${String(j + 1).padStart(2, "0")}`)} compact excColumn selected={i === stepIdx} item={item} onClick={() => setStepIdx(i)} />
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {/* step description */}
+                <div className="border-l border-slate-100 pl-6">
+                  <p className="text-xs leading-5 text-slate-400">
+                    {t(lang, "适用范围", "적용 범위", "Scope")} · {renderLinkedText(t(lang, item.scopeZh, item.scopeKo, item.scopeKo), lang, allItems, onSwitchItem)}
+                  </p>
+                  <div className="mt-5 border-t border-slate-100 pt-4">
+                    <p className="text-xs font-bold text-slate-400">{t(lang, "步骤说明", "단계 설명", "Step Description")}</p>
+                    <p className="mt-2 text-base font-black text-slate-900">{t(lang, cur.zh || cur.ko, cur.ko, cur.ko)}</p>
+                    <p className="mt-1 text-xs text-slate-400">{stepSys(cur, item)}</p>
+                    <p className="mt-3 text-sm leading-6 text-slate-600">{t(lang, cur.dzh || cur.dko, cur.dko, cur.dko)}</p>
+                    {cur.caution && (
+                      <p className="mt-3 flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs font-bold text-red-600">
+                        <AlertTriangle size={13} /> {t(lang, "注意步骤：操作前请再次确认。", "주의 단계입니다. 처리 전에 다시 확인하세요.", "Caution step — double-check before acting.")}
+                      </p>
+                    )}
+                  </div>
+                  {item.hasSimulator && (
+                    <button
+                      onClick={() => onOpenSimulator(item)}
+                      className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black text-white transition hover:opacity-90"
+                      style={{ background: ORANGE }}
+                    >
+                      <Play size={16} />
+                      {t(lang, "打开练习模拟器", "연습 시뮬레이터 열기", "Open Practice Simulator")}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {tab === "caution" && (
+              <div className="mx-auto max-w-2xl">
+                <div className="rounded-xl bg-amber-50 p-5">
+                  <p className="text-sm font-black text-amber-800">{t(lang, "请确认", "확인하세요", "Please Check")}</p>
+                  <p className="mt-2 text-sm leading-7 text-amber-700">{t(lang, item.cautionZh, item.cautionKo, item.cautionKo)}</p>
+                </div>
+                <div className="mt-4 rounded-xl bg-slate-50 p-5">
+                  <p className="text-sm font-black text-slate-800">{t(lang, "现场优先原则", "현장 우선 원칙", "Field-First Principle")}</p>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    {t(lang, "先确认实物，再处理系统。所有异常都要留下原因、处理步骤和结果确认。", "실물을 먼저 확인하고 시스템을 처리합니다. 모든 오류는 원인, 조치, 결과를 기록합니다.", "Check the physical goods first, then the system. Record cause, action and result for every error.")}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {tab === "history" && (
+              <div className="mx-auto max-w-2xl space-y-3">
+                <div className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
+                  <span className="text-sm font-bold text-slate-700">{t(lang, "修订", "개정", "Revision")}</span>
+                  <span className="text-sm text-slate-400">{item.revised} · {t(lang, "管理员", "관리자", "Admin")}</span>
+                </div>
+                {isEdited && (
+                  <div className="flex items-center justify-between rounded-xl border border-orange-200 bg-orange-50/60 px-4 py-3">
+                    <span className="text-sm font-bold text-orange-700">{t(lang, "本地修改", "로컬 수정", "Local edit")}</span>
+                    <span className="text-sm text-orange-500">{t(lang, "仅保存在当前浏览器", "이 브라우저에만 저장됨", "Saved in this browser only")}</span>
+                  </div>
+                )}
+                <p className="text-sm text-slate-400">{t(lang, "暂无更多修订记录。", "추가 수정 이력이 없습니다.", "No further revisions.")}</p>
+              </div>
+            )}
+
+            {tab === "related" && (
+              <div className="mx-auto max-w-2xl space-y-2">
+                {related.length === 0 && (
+                  <p className="text-sm text-slate-400">{t(lang, "暂无相关文档。", "관련 문서가 없습니다.", "No related documents.")}</p>
+                )}
+                {related.map((r) => (
+                  <button
+                    key={r.code}
+                    onClick={() => onSwitchItem(r)}
+                    className="flex w-full items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 text-left transition hover:border-orange-200 hover:bg-orange-50/40"
+                  >
+                    <FileText size={16} style={{ color: ORANGE }} />
+                    <span className="flex-1 text-sm font-bold text-slate-700">[{r.code}] {t(lang, r.titleZh, r.titleKo, r.titleKo)}</span>
+                    <ChevronRight size={15} className="text-slate-300" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* footer */}
+          <div className="flex items-center justify-between border-t border-slate-100 px-6 py-3.5 print:hidden">
+            <span className="text-xs text-slate-400">{t(lang, "更多", "더보기", "More")}</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setStepIdx((v) => Math.max(0, v - 1))}
+                disabled={stepIdx === 0}
+                className="rounded-lg bg-slate-100 px-3.5 py-2 text-xs font-bold text-slate-600 transition enabled:hover:bg-slate-200 disabled:opacity-40"
+              >
+                {t(lang, "上一步", "이전 단계", "Prev")}
+              </button>
+              <span className="px-1 text-xs font-bold text-slate-500">{steps.length ? stepIdx + 1 : 0} / {steps.length}</span>
+              <button
+                onClick={() => setStepIdx((v) => Math.min(steps.length - 1, v + 1))}
+                disabled={stepIdx === steps.length - 1}
+                className="rounded-lg bg-slate-100 px-3.5 py-2 text-xs font-bold text-slate-600 transition enabled:hover:bg-slate-200 disabled:opacity-40"
+              >
+                {t(lang, "下一步", "다음 단계", "Next")}
+              </button>
+            </div>
+            <button onClick={onClose} className="rounded-lg bg-slate-100 px-3.5 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-200">
+              {t(lang, "返回列表", "목록으로", "Back to List")}
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </>
   );
 }
 
@@ -3352,13 +4177,15 @@ function Simulator({ lang, onBack, notify }) {
 }
 
 /* ---------------- portal view ---------------- */
-function PortalView({ lang, setLang, category, setCategory, query, setQuery, items, selected, setSelected, onOpenDetail, onOpenSimulator, notify }) {
+function PortalView({ lang, setLang, category, setCategory, query, setQuery, items, allItems, selected, setSelected, onOpenDetail, onOpenSimulator, notify, favs, onToggleFav, onNewDoc }) {
   const counts = useMemo(() => {
     const c = {};
-    sopItems.forEach((x) => { c[x.category] = (c[x.category] || 0) + 1; });
+    (allItems || []).forEach((x) => { c[x.category] = (c[x.category] || 0) + 1; });
     return c;
-  }, []);
+  }, [allItems]);
   const [langOpen, setLangOpen] = useState(false);
+  const [favOnly, setFavOnly] = useState(false);
+  const shownItems = favOnly ? items.filter((x) => (favs || []).includes(x.code)) : items;
   const activeCat = categories.find((c) => c.key === category);
 
   return (
@@ -3398,7 +4225,7 @@ function PortalView({ lang, setLang, category, setCategory, query, setQuery, ite
                     </div>
                   )}
                 </div>
-                <button onClick={() => notify(t(lang, "文档登记功能准备中", "문서 등록 기능 준비 중입니다", "Document registration in preparation"))} className="rounded-lg border px-3.5 py-2 text-sm font-black transition hover:bg-orange-50" style={{ borderColor: ORANGE, color: ORANGE }}>
+                <button onClick={onNewDoc} className="rounded-lg border px-3.5 py-2 text-sm font-black transition hover:bg-orange-50" style={{ borderColor: ORANGE, color: ORANGE }}>
                   {t(lang, "登记文档", "문서 등록", "New Document")}
                 </button>
               </div>
@@ -3449,12 +4276,12 @@ function PortalView({ lang, setLang, category, setCategory, query, setQuery, ite
             <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
                 <p className="text-sm font-black text-slate-800">
-                  {t(lang, activeCat?.zh, activeCat?.ko, activeCat?.en)} <span className="ml-1 text-slate-400">{items.length}</span>
+                  {t(lang, activeCat?.zh, activeCat?.ko, activeCat?.en)} <span className="ml-1 text-slate-400">{shownItems.length}</span>
                 </p>
                 <div className="flex items-center gap-3 text-xs font-bold text-slate-400">
-                  <span className="text-slate-700 underline underline-offset-4">{t(lang, "全部文档", "전체 문서", "All")}</span>
+                  <button onClick={() => setFavOnly(false)} className={favOnly ? "" : "text-slate-700 underline underline-offset-4"}>{t(lang, "全部文档", "전체 문서", "All")}</button>
                   <span className="hidden sm:inline">{t(lang, "最近浏览", "최근 열람", "Recent")}</span>
-                  <span className="hidden sm:inline">☆ {t(lang, "仅收藏", "즐겨찾기만", "Bookmarks")}</span>
+                  <button onClick={() => setFavOnly((v) => !v)} className={`hidden sm:inline ${favOnly ? "text-orange-600 underline underline-offset-4" : ""}`}>☆ {t(lang, "仅收藏", "즐겨찾기만", "Bookmarks")}</button>
                 </div>
               </div>
               <div className="hidden grid-cols-[110px_1fr_110px_110px] gap-3 border-b border-slate-100 bg-slate-50 px-5 py-2.5 text-[11px] font-bold text-slate-400 md:grid">
@@ -3463,13 +4290,13 @@ function PortalView({ lang, setLang, category, setCategory, query, setQuery, ite
                 <span>{t(lang, "适用中心", "적용 센터", "Center")}</span>
                 <span>{t(lang, "修订日", "개정일", "Revised")}</span>
               </div>
-              {items.length === 0 && (
+              {shownItems.length === 0 && (
                 <div className="px-5 py-14 text-center">
                   <ClipboardList size={28} className="mx-auto text-slate-300" />
                   <p className="mt-3 text-sm font-bold text-slate-500">{t(lang, "暂无登记的文档（准备中）", "등록된 문서가 없습니다 (준비 중)", "No documents yet (in preparation)")}</p>
                 </div>
               )}
-              {items.map((item) => {
+              {shownItems.map((item) => {
                 const cat = categories.find((c) => c.key === item.category);
                 const isSel = selected?.code === item.code;
                 return (
@@ -3481,7 +4308,9 @@ function PortalView({ lang, setLang, category, setCategory, query, setQuery, ite
                   >
                     <span className="text-xs font-semibold text-slate-400">{t(lang, cat?.zh, cat?.ko, cat?.en)}</span>
                     <span className="flex items-start gap-2.5">
-                      <Star size={15} className="mt-0.5 shrink-0 text-slate-300" />
+                      <span role="button" title={t(lang, "收藏/取消收藏", "즐겨찾기 추가/제거", "Toggle bookmark")} onClick={(e) => { e.stopPropagation(); onToggleFav(item.code); }} className="mt-0.5 shrink-0 cursor-pointer">
+                        <Star size={15} fill={(favs || []).includes(item.code) ? "currentColor" : "none"} className={(favs || []).includes(item.code) ? "text-orange-500" : "text-slate-300"} />
+                      </span>
                       <span>
                         <span className="block text-sm font-black text-slate-800">
                           [{item.code}] {t(lang, item.titleZh, item.titleKo, item.titleKo)}
@@ -3500,14 +4329,14 @@ function PortalView({ lang, setLang, category, setCategory, query, setQuery, ite
                 );
               })}
               <div className="flex items-center justify-between px-5 py-3 text-xs text-slate-400">
-                <span>{items.length > 0 ? `1-${items.length} / ${items.length}` : "0 / 0"}</span>
+                <span>{shownItems.length > 0 ? `1-${shownItems.length} / ${shownItems.length}` : "0 / 0"}</span>
                 <span className="flex h-6 w-6 items-center justify-center rounded-md text-[11px] font-black text-white" style={{ background: ORANGE }}>1</span>
               </div>
             </section>
 
             {/* briefing */}
             <div className="xl:sticky xl:top-5 xl:self-start">
-              <BriefingPanel lang={lang} item={selected} onOpenDetail={() => selected && onOpenDetail(selected)} onOpenSimulator={onOpenSimulator} />
+              <BriefingPanel lang={lang} item={selected} allItems={allItems} onOpenDetail={(it) => onOpenDetail(it || selected)} onOpenSimulator={onOpenSimulator} />
               <div className="mt-4 flex flex-wrap gap-1.5">
                 {hotTags.map((tag) => (
                   <button key={tag} onClick={() => setQuery(tag)} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-orange-200 hover:text-orange-600">
@@ -3536,8 +4365,53 @@ export default function MiryangAutoOpsPortal() {
   const [view, setView] = useState("portal");
   const [simItem, setSimItem] = useState(null);
   const [toast, setToast] = useState(null);
+  const [favs, setFavs] = useState(() => loadLs(FAV_KEY, []));
+  const [overrides, setOverrides] = useState(() => loadLs(OVERRIDE_KEY, {}));
+  const [editItem, setEditItem] = useState(null);
+  const allItems = useMemo(() => applyOverrides(sopItems, overrides), [overrides]);
+  useEffect(() => {
+    if (selected) {
+      const u = allItems.find((x) => x.code === selected.code);
+      if (u && u !== selected) setSelected(u);
+    }
+    if (detailItem) {
+      const u = allItems.find((x) => x.code === detailItem.code);
+      if (u && u !== detailItem) setDetailItem(u);
+    }
+  }, [allItems]);
 
   const openSimulator = (item) => { setSimItem(item); setDetailItem(null); setView("simulator"); window.scrollTo(0, 0); };
+
+  const toggleFav = (code) => {
+    setFavs((prev) => {
+      const next = prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code];
+      saveLs(FAV_KEY, next);
+      return next;
+    });
+  };
+  const saveEdit = (edited) => {
+    setOverrides((prev) => {
+      const next = { ...prev, [edited.code]: edited };
+      saveLs(OVERRIDE_KEY, next);
+      return next;
+    });
+    setEditItem(null);
+    if (edited.isNew) {
+      setCategory(edited.category);
+      setSelected(edited);
+    }
+    notify(t(lang, "已保存（仅当前浏览器）", "저장되었습니다 (이 브라우저만)", "Saved (this browser only)"));
+  };
+  const resetEdit = (code) => {
+    setOverrides((prev) => {
+      const next = { ...prev };
+      delete next[code];
+      saveLs(OVERRIDE_KEY, next);
+      return next;
+    });
+    setEditItem(null);
+    notify(t(lang, "已恢复为原始版本", "원본으로 되돌렸습니다", "Reverted to original"));
+  };
 
   const notify = (msg) => {
     setToast(msg);
@@ -3546,17 +4420,17 @@ export default function MiryangAutoOpsPortal() {
 
   const items = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return sopItems.filter((x) => {
+    return allItems.filter((x) => {
       if (category !== "all" && x.category !== category) return false;
       if (!q) return true;
       const hay = [x.code, x.titleKo, x.titleZh, x.descKo, x.descZh, ...(x.tags || [])].join(" ").toLowerCase();
       return hay.includes(q);
     });
-  }, [category, query]);
+  }, [category, query, allItems]);
 
   const changeCategory = (key) => {
     setCategory(key);
-    const first = key === "all" ? sopItems[0] : sopItems.find((x) => x.category === key);
+    const first = key === "all" ? allItems[0] : allItems.find((x) => x.category === key);
     if (first) setSelected(first);
   };
 
@@ -3571,11 +4445,15 @@ export default function MiryangAutoOpsPortal() {
           query={query}
           setQuery={setQuery}
           items={items}
+          allItems={allItems}
           selected={selected}
           setSelected={setSelected}
           onOpenDetail={setDetailItem}
           onOpenSimulator={openSimulator}
           notify={notify}
+          favs={favs}
+          onToggleFav={toggleFav}
+          onNewDoc={() => setEditItem({ item: null, isNew: true })}
         />
       ) : (
         simItem && simItem.code === "WDL07" ? (
@@ -3590,9 +4468,30 @@ export default function MiryangAutoOpsPortal() {
           <SopDetailModal
             lang={lang}
             item={detailItem}
+            allItems={allItems}
+            favs={favs}
+            onToggleFav={toggleFav}
+            onEdit={() => setEditItem({ item: detailItem, isNew: false })}
+            isEdited={!!overrides[detailItem.code]}
             onClose={() => setDetailItem(null)}
             onOpenSimulator={openSimulator}
             onSwitchItem={(r) => { setSelected(r); setDetailItem(r); }}
+            notify={notify}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {editItem && (
+          <SopEditModal
+            lang={lang}
+            item={editItem.item}
+            isNew={editItem.isNew}
+            allItems={allItems}
+            hasOverride={!!(editItem.item && overrides[editItem.item.code])}
+            onClose={() => setEditItem(null)}
+            onSave={saveEdit}
+            onReset={resetEdit}
             notify={notify}
           />
         )}
