@@ -1262,7 +1262,7 @@ function Sidebar({ lang, category, setCategory, counts }) {
 }
 
 /* ---------------- portal: briefing panel ---------------- */
-function BriefingPanel({ lang, item, onOpenDetail, onOpenSimulator }) {
+function BriefingPanel({ lang, item, allItems, onOpenDetail, onOpenSimulator }) {
   if (!item) {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-400 shadow-sm">
@@ -1283,11 +1283,11 @@ function BriefingPanel({ lang, item, onOpenDetail, onOpenSimulator }) {
       <p className="mt-1 text-xs text-slate-400">
         SOP · {t(lang, cat?.zh, cat?.ko, cat?.en)} · {t(lang, item.centerZh, item.centerKo, item.centerKo)}
       </p>
-      <p className="mt-3 text-sm leading-6 text-slate-600">{t(lang, item.descZh, item.descKo, item.descKo)}</p>
+      <p className="mt-3 text-sm leading-6 text-slate-600">{renderLinkedText(t(lang, item.descZh, item.descKo, item.descKo), lang, allItems, onOpenDetail)}</p>
 
       <div className="mt-5 border-t border-slate-100 pt-4">
         <p className="text-sm font-black text-slate-800">{t(lang, "开始前准备", "시작 전 준비", "Before You Start")}</p>
-        <p className="mt-1.5 text-sm text-slate-500">{t(lang, item.scopeZh, item.scopeKo, item.scopeKo)}</p>
+        <p className="mt-1.5 text-sm leading-6 text-slate-500">{renderLinkedText(t(lang, item.scopeZh, item.scopeKo, item.scopeKo), lang, allItems, onOpenDetail)}</p>
       </div>
 
       <div className="mt-4 border-t border-slate-100 pt-4">
@@ -1401,6 +1401,80 @@ function nextUserCode(allItems) {
   while (codes.has("USR-" + String(n).padStart(2, "0"))) n++;
   return "USR-" + String(n).padStart(2, "0");
 }
+/* @[CODE] tokens in scope/purpose text are real links to that SOP's detail.
+   New tokens are "@[CODE]" only; old tokens were "@[CODE] title" (title typed
+   out as plain text). The parser accepts both: a trailing title that matches
+   the target's own title is swallowed so it is not shown twice. Pure function
+   (no JSX) so it can be unit-tested in node. */
+function parseLinkedTokens(text, allItems) {
+  const s = String(text || "");
+  const re = /@\[([A-Z0-9-]+)\]/g;
+  const out = [];
+  const pushText = (t0) => {
+    if (!t0) return;
+    const lastP = out[out.length - 1];
+    if (lastP && lastP.type === "text") lastP.text += t0;
+    else out.push({ type: "text", text: t0 });
+  };
+  let last = 0;
+  let m;
+  while ((m = re.exec(s))) {
+    if (m.index > last) pushText(s.slice(last, m.index));
+    const target = (allItems || []).find((x) => x.code === m[1]);
+    let end = re.lastIndex;
+    if (target) {
+      const rest = s.slice(end);
+      const titles = [target.titleKo, target.titleZh].filter(Boolean);
+      for (const tt of titles) {
+        if (rest.startsWith(" " + tt)) {
+          const after = rest[1 + tt.length];
+          if (after === undefined || !/[A-Za-z0-9가-힣一-鿿]/.test(after)) {
+            end += 1 + tt.length;
+            break;
+          }
+        }
+      }
+      out.push({ type: "link", code: target.code, item: target });
+    } else {
+      pushText(m[0]);
+    }
+    last = end;
+    re.lastIndex = end;
+  }
+  if (last < s.length) pushText(s.slice(last));
+  return out;
+}
+/* Renders text with @[CODE] tokens as clickable chips. onOpen may be null
+   (edit-mode preview) — then chips render as static labels, not buttons. */
+function renderLinkedText(text, lang, allItems, onOpen) {
+  return parseLinkedTokens(text, allItems).map((p, i) => {
+    if (p.type !== "link") return <span key={i}>{p.text}</span>;
+    const label = `[${p.code}] ${t(lang, p.item.titleZh, p.item.titleKo, p.item.titleKo)}`;
+    if (!onOpen) {
+      return (
+        <span key={i} className="mx-0.5 inline-flex items-center gap-1 rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-xs font-bold text-orange-600">
+          <FileText size={11} />
+          {label}
+        </span>
+      );
+    }
+    return (
+      <button
+        key={i}
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpen(p.item);
+        }}
+        className="mx-0.5 inline-flex items-center gap-1 rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-xs font-bold text-orange-600 transition hover:bg-orange-100"
+        title={label}
+      >
+        <FileText size={11} />
+        {label}
+      </button>
+    );
+  });
+}
 /* 텍스트로 절차 만들기: one line (or one ">" menu path) per step.
    Splits a paragraph into sentences on . 。 ! ? and on 다음 / 그 다음 / 그리고.
    Step titles come only from the typed text — nothing is invented. */
@@ -1442,8 +1516,11 @@ function parseFlowText(text, item) {
 }
 
 /* Shared flowchart node (detail view + edit view). Caution = red + ⚠ (PR Desk),
-   exception = amber dashed + 예외 chip, selected = dark border. */
-function FlowStepNode({ lang, s, i, selected, item, onClick }) {
+   exception = amber dashed + 예외 chip, selected = dark border.
+   num: display number (defaults to i+1); compact: full-width node for the
+   exception column; excColumn: node already sits in the 예외 column, so the
+   in-node 예외 chip is redundant and hidden. */
+function FlowStepNode({ lang, s, i, num, compact, excColumn, selected, item, onClick }) {
   const sys = stepSys(s, item);
   const style = s.caution
     ? "border-red-300 bg-red-50 shadow-sm"
@@ -1456,7 +1533,7 @@ function FlowStepNode({ lang, s, i, selected, item, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`relative w-72 rounded-xl border-2 px-4 py-3 text-center transition ${style}`}
+      className={`relative rounded-xl border-2 px-4 py-3 text-center transition ${compact ? "w-full" : "w-72"} ${style}`}
     >
       {s.caution && (
         <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white">
@@ -1464,8 +1541,8 @@ function FlowStepNode({ lang, s, i, selected, item, onClick }) {
         </span>
       )}
       <p className="text-[11px] font-black" style={{ color: selected ? ORANGE : "#94A3B8" }}>
-        {String(i + 1).padStart(2, "0")}
-        {s.exc ? (
+        {num || String(i + 1).padStart(2, "0")}
+        {!excColumn && s.exc ? (
           <span className="ml-1 rounded bg-amber-100 px-1 py-0.5 text-[10px] font-black text-amber-700">
             {t(lang, "例外", "예외", "Exception")}
           </span>
@@ -1534,10 +1611,13 @@ function SopEditModal({ lang, item, isNew, allItems, hasOverride, onClose, onSav
   const [stepIdx, setStepIdx] = useState(0);
   const [flowText, setFlowText] = useState("");
   const [linkFor, setLinkFor] = useState(null);
+  const [relQuery, setRelQuery] = useState("");
   const set = (patch) => setDraft((d) => ({ ...d, ...patch }));
   const setStep = (i, patch) =>
     setDraft((d) => ({ ...d, steps: d.steps.map((s, j) => (j === i ? { ...s, ...patch } : s)) }));
   const cur = draft.steps[stepIdx];
+  const mainSteps = draft.steps.map((s, i) => ({ s, i })).filter(({ s }) => !s.exc);
+  const excSteps = draft.steps.map((s, i) => ({ s, i })).filter(({ s }) => s.exc);
   const relDefault = (allItems || [])
     .filter((x) => x.category === draft.category && x.code !== draft.code)
     .map((x) => x.code);
@@ -1599,7 +1679,7 @@ function SopEditModal({ lang, item, isNew, allItems, hasOverride, onClose, onSav
             key={x.code}
             type="button"
             onClick={() => {
-              const token = ` @[${x.code}] ${x.titleKo}`;
+              const token = ` @[${x.code}]`;
               set({ [field]: (draft[field] || "") + token });
               setLinkFor(null);
             }}
@@ -1733,6 +1813,12 @@ function SopEditModal({ lang, item, isNew, allItems, hasOverride, onClose, onSav
                 <input value={draft.scopeKo} onChange={(e) => set({ scopeKo: e.target.value })} className={inputCls} placeholder={t(lang, "输入内容 - @ 关联 SOP", "내용 입력 - @로 SOP 연결", "Type here - @ to link a SOP")} />
                 {linkBtn("scopeKo")}
                 {linkPicker("scopeKo")}
+                {(draft.scopeKo || "").includes("@[") && (
+                  <p className="mt-2 text-xs leading-6 text-slate-500">
+                    {t(lang, "预览：", "미리보기: ", "Preview: ")}
+                    {renderLinkedText(draft.scopeKo, lang, allItems, null)}
+                  </p>
+                )}
               </div>
               <div>
                 <label className={labelCls}>{t(lang, "适用范围（中文）", "적용 범위 (중국어)", "Scope (ZH)")}</label>
@@ -1743,6 +1829,12 @@ function SopEditModal({ lang, item, isNew, allItems, hasOverride, onClose, onSav
                 <textarea value={draft.descKo} onChange={(e) => set({ descKo: e.target.value })} className={inputCls} rows={3} placeholder={t(lang, "输入内容 - @ 关联 SOP", "내용 입력 - @로 SOP 연결", "Type here - @ to link a SOP")} />
                 {linkBtn("descKo")}
                 {linkPicker("descKo")}
+                {(draft.descKo || "").includes("@[") && (
+                  <p className="mt-2 text-xs leading-6 text-slate-500">
+                    {t(lang, "预览：", "미리보기: ", "Preview: ")}
+                    {renderLinkedText(draft.descKo, lang, allItems, null)}
+                  </p>
+                )}
               </div>
               <div>
                 <label className={labelCls}>{t(lang, "目的（中文）", "목적 (중국어)", "Purpose (ZH)")}</label>
@@ -1789,18 +1881,36 @@ function SopEditModal({ lang, item, isNew, allItems, hasOverride, onClose, onSav
                 <span className="ml-auto text-xs text-slate-400">{t(lang, "点选步骤，在右侧编辑", "단계를 선택해 오른쪽에서 수정하세요", "Select a step to edit it on the right")}</span>
               </div>
               <div className="mt-4 grid gap-8 md:grid-cols-[1fr_320px]">
-                <div className="flex flex-col items-center">
-                  <div className="rounded-full bg-[#232C3D] px-10 py-2.5 text-sm font-black text-white">
-                    {t(lang, "开始", "시작", "Start")}
+                <div className={excSteps.length ? "grid items-start gap-6 md:grid-cols-[1fr_220px]" : "flex flex-col items-center"}>
+                  <div className="flex flex-col items-center">
+                    <div className="rounded-full bg-[#232C3D] px-10 py-2.5 text-sm font-black text-white">
+                      {t(lang, "开始", "시작", "Start")}
+                    </div>
+                    {mainSteps.map(({ s, i }, j) => (
+                      <React.Fragment key={i}>
+                        <FlowArrow />
+                        <FlowStepNode lang={lang} s={s} i={i} num={String(j + 1).padStart(2, "0")} selected={i === stepIdx} item={{ category: draft.category }} onClick={() => setStepIdx(i)} />
+                      </React.Fragment>
+                    ))}
+                    {draft.steps.length === 0 && (
+                      <p className="mt-6 text-sm text-slate-400">{t(lang, "还没有步骤：先在上面写一段话并点「生成流程」，或点「添加步骤」。", "아직 단계가 없습니다. 위에서 말로 적고 흐름 생성을 누르거나 단계를 추가하세요.", "No steps yet — describe the flow above and generate, or add a step.")}</p>
+                    )}
                   </div>
-                  {draft.steps.map((s, i) => (
-                    <React.Fragment key={i}>
-                      <FlowArrow />
-                      <FlowStepNode lang={lang} s={s} i={i} selected={i === stepIdx} item={{ category: draft.category }} onClick={() => setStepIdx(i)} />
-                    </React.Fragment>
-                  ))}
-                  {draft.steps.length === 0 && (
-                    <p className="mt-6 text-sm text-slate-400">{t(lang, "还没有步骤：先在上面写一段话并点「生成流程」，或点「添加步骤」。", "아직 단계가 없습니다. 위에서 말로 적고 흐름 생성을 누르거나 단계를 추가하세요.", "No steps yet — describe the flow above and generate, or add a step.")}</p>
+                  {excSteps.length > 0 && (
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4">
+                      <p className="text-center text-xs font-black text-amber-700">{t(lang, "例外情况", "예외", "Exceptions")}</p>
+                      <p className="mt-1 text-center text-[11px] leading-4 text-amber-600/80">
+                        {t(lang, "出问题时才走的分支，不占主流程编号。", "문제가 생겼을 때만 진행하는 분기로, 주 흐름 번호를 차지하지 않습니다.", "Branches taken only when something goes wrong — they don't take main-flow numbers.")}
+                      </p>
+                      <div className="mt-3 flex flex-col items-center">
+                        {excSteps.map(({ s, i }, j) => (
+                          <React.Fragment key={i}>
+                            {j > 0 && <FlowArrow />}
+                            <FlowStepNode lang={lang} s={s} i={i} num={t(lang, `例外 ${String(j + 1).padStart(2, "0")}`, `예외 ${String(j + 1).padStart(2, "0")}`, `Exception ${String(j + 1).padStart(2, "0")}`)} compact excColumn selected={i === stepIdx} item={{ category: draft.category }} onClick={() => setStepIdx(i)} />
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
                 <div className="border-l border-slate-100 pl-6">
@@ -1872,14 +1982,48 @@ function SopEditModal({ lang, item, isNew, allItems, hasOverride, onClose, onSav
 
           {tab === "caution" && (
             <div className="mx-auto max-w-2xl space-y-4">
-              <div>
-                <label className={labelCls}>{t(lang, "注意事项（韩文）", "주의사항", "Cautions (KO)")}</label>
-                <textarea value={draft.cautionKo} onChange={(e) => set({ cautionKo: e.target.value })} className={inputCls} rows={4} />
+              <p className="text-xs leading-5 text-slate-400">
+                {t(lang, "这里的文字显示在详情页「注意事项」标签下。标为注意的步骤会另外列在下面。", "이 내용은 상세 보기 주의사항 탭에 표시됩니다. 주의 단계로 표시된 단계는 아래에 따로 모입니다.", "This text shows on the detail view's Cautions tab. Steps marked as caution are listed below.")}
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className={labelCls}>{t(lang, "注意事项（韩文）", "주의사항", "Cautions (KO)")}</label>
+                  <textarea value={draft.cautionKo} onChange={(e) => set({ cautionKo: e.target.value })} className={inputCls} rows={4} />
+                </div>
+                <div>
+                  <label className={labelCls}>{t(lang, "注意事项（中文）", "주의사항 (중국어)", "Cautions (ZH)")}</label>
+                  <textarea value={draft.cautionZh} onChange={(e) => set({ cautionZh: e.target.value })} className={inputCls} rows={4} />
+                </div>
               </div>
-              <div>
-                <label className={labelCls}>{t(lang, "注意事项（中文）", "주의사항 (중국어)", "Cautions (ZH)")}</label>
-                <textarea value={draft.cautionZh} onChange={(e) => set({ cautionZh: e.target.value })} className={inputCls} rows={4} />
-              </div>
+              {draft.steps.some((s) => s.caution) ? (
+                <div>
+                  <p className="text-sm font-black text-slate-800">
+                    {t(lang, "注意步骤", "주의 단계", "Caution Steps")} · {draft.steps.filter((s) => s.caution).length}
+                  </p>
+                  <div className="mt-2 space-y-2">
+                    {draft.steps.map((s, i) =>
+                      s.caution ? (
+                        <div
+                          key={i}
+                          className="flex w-full items-center gap-2.5 rounded-xl border border-red-200 bg-red-50/60 px-4 py-2.5"
+                        >
+                          <AlertTriangle size={14} className="shrink-0 text-red-500" />
+                          <span className="text-xs font-black text-red-500">{String(i + 1).padStart(2, "0")}</span>
+                          <span className="flex-1 truncate text-sm font-bold text-slate-700">{t(lang, s.zh || s.ko, s.ko, s.ko)}</span>
+                          <span className="text-xs text-slate-400">{stepSys(s, { category: draft.category })}</span>
+                        </div>
+                      ) : null
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs text-slate-400">
+                    {t(lang, "在「操作流程」里点步骤，勾选「标为注意步骤」即可增减。", "작업 절차 탭에서 단계를 선택하고 주의 단계로 표시를 켜거나 꺼서 추가·제거할 수 있습니다.", "Toggle 'Mark as caution step' on a step in the Procedure tab to add or remove it here.")}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-slate-400">
+                  {t(lang, "目前没有标为注意的步骤。在「操作流程」里点步骤，勾选「标为注意步骤」即可添加。", "주의 단계로 표시된 단계가 없습니다. 작업 절차 탭에서 단계를 선택하고 주의 단계로 표시를 켜면 여기에 표시됩니다.", "No caution steps yet. Select a step in the Procedure tab and tick 'Mark as caution step' to add one.")}
+                </p>
+              )}
               <div className="rounded-xl bg-slate-50 p-5">
                 <p className="text-sm font-black text-slate-800">{t(lang, "现场优先原则", "현장 우선 원칙", "Field-First Principle")}</p>
                 <p className="mt-2 text-sm leading-7 text-slate-600">
@@ -1892,30 +2036,76 @@ function SopEditModal({ lang, item, isNew, allItems, hasOverride, onClose, onSav
           {tab === "related" && (
             <div className="mx-auto max-w-2xl">
               <p className="text-sm text-slate-500">
-                {t(lang, "勾选要关联到这篇文档的 SOP。默认关联同分类的全部文档。", "이 문서에 연결할 SOP를 선택하세요. 기본값은 같은 분류의 모든 문서입니다.", "Tick the SOPs to link. By default, all SOPs in the same category are linked.")}
+                {t(lang, "勾选要关联到这篇文档的 SOP，关联的文档会显示在详情页「相关文档」里，点一下就能打开。默认关联同分类的全部文档。", "이 문서에 연결할 SOP를 선택하세요. 연결된 문서는 상세 보기 관련 문서 탭에 표시되며, 클릭하면 열립니다. 기본값은 같은 분류의 모든 문서입니다.", "Tick the SOPs to link — they show on the detail view's Related tab, click to open. By default, all SOPs in the same category are linked.")}
               </p>
-              <div className="mt-4 space-y-2">
-                {(allItems || [])
-                  .filter((x) => x.code !== draft.code)
-                  .sort((a, b) => (a.category === draft.category ? -1 : 1) - (b.category === draft.category ? -1 : 1))
-                  .map((x) => {
-                    const checked = relCodes.includes(x.code);
+              <div className="mt-4 flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    value={relQuery}
+                    onChange={(e) => setRelQuery(e.target.value)}
+                    className={`${inputCls} pl-9`}
+                    placeholder={t(lang, "搜索编号或标题…", "코드나 제목 검색…", "Search code or title…")}
+                  />
+                </div>
+                <span className="shrink-0 text-xs font-bold text-slate-500">
+                  {t(lang, `已关联 ${relCodes.length} 篇`, `연결됨 ${relCodes.length}개`, `${relCodes.length} linked`)}
+                </span>
+                {draft.relatedCodes && (
+                  <button
+                    type="button"
+                    onClick={() => set({ relatedCodes: null })}
+                    className="shrink-0 rounded-lg border border-slate-200 px-2.5 py-2 text-[11px] font-bold text-slate-500 transition hover:border-orange-200 hover:text-orange-600"
+                  >
+                    {t(lang, "恢复默认", "기본값으로", "Reset to default")}
+                  </button>
+                )}
+              </div>
+              <div className="mt-4 space-y-5">
+                {categories
+                  .filter((c) => c.key !== "all")
+                  .map((cat) => {
+                    const q = relQuery.trim().toLowerCase();
+                    const list = (allItems || []).filter(
+                      (x) =>
+                        x.code !== draft.code &&
+                        x.category === cat.key &&
+                        (!q || [x.code, x.titleKo, x.titleZh].join(" ").toLowerCase().includes(q))
+                    );
+                    if (!list.length) return null;
+                    const linkedCount = list.filter((x) => relCodes.includes(x.code)).length;
                     return (
-                      <label key={x.code} className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 transition hover:border-orange-200">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => {
-                            const next = checked ? relCodes.filter((c) => c !== x.code) : [...relCodes, x.code];
-                            set({ relatedCodes: next });
-                          }}
-                          className="h-4 w-4 accent-orange-500"
-                        />
-                        <FileText size={15} style={{ color: ORANGE }} />
-                        <span className="text-sm font-bold text-slate-700">[{x.code}] {t(lang, x.titleZh, x.titleKo, x.titleKo)}</span>
-                      </label>
+                      <div key={cat.key}>
+                        <p className="mb-2 text-xs font-black text-slate-500">
+                          {t(lang, cat.zh, cat.ko, cat.en)} · {linkedCount}/{list.length}
+                        </p>
+                        <div className="space-y-2">
+                          {list.map((x) => {
+                            const checked = relCodes.includes(x.code);
+                            return (
+                              <label key={x.code} className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 transition hover:border-orange-200">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => {
+                                    const next = checked ? relCodes.filter((c) => c !== x.code) : [...relCodes, x.code];
+                                    set({ relatedCodes: next });
+                                  }}
+                                  className="h-4 w-4 shrink-0 accent-orange-500"
+                                />
+                                <FileText size={15} className="shrink-0" style={{ color: ORANGE }} />
+                                <span className="text-sm font-bold text-slate-700">[{x.code}] {t(lang, x.titleZh, x.titleKo, x.titleKo)}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
                     );
                   })}
+                {!(allItems || []).some((x) => {
+                  const q = relQuery.trim().toLowerCase();
+                  return x.code !== draft.code && (!q || [x.code, x.titleKo, x.titleZh].join(" ").toLowerCase().includes(q));
+                }) && <p className="text-sm text-slate-400">{t(lang, "没有找到匹配的文档。", "일치하는 문서가 없습니다.", "No matching documents.")}</p>}
               </div>
             </div>
           )}
@@ -1950,6 +2140,8 @@ function SopDetailModal({ lang, item, allItems, favs, onToggleFav, onEdit, isEdi
   const [stepIdx, setStepIdx] = useState(0);
   const steps = item.steps || [];
   const cur = steps[stepIdx] || { ko: "", zh: "", dko: "", dzh: "" };
+  const mainSteps = steps.map((s, i) => ({ s, i })).filter(({ s }) => !s.exc);
+  const excSteps = steps.map((s, i) => ({ s, i })).filter(({ s }) => s.exc);
   const cat = categories.find((c) => c.key === item.category);
   const related = item.relatedCodes
     ? (allItems || []).filter((x) => item.relatedCodes.includes(x.code))
@@ -2034,22 +2226,40 @@ function SopDetailModal({ lang, item, allItems, favs, onToggleFav, onEdit, isEdi
           <div className="flex-1 overflow-y-auto px-6 py-6">
             {tab === "steps" && (
               <div className="grid gap-8 md:grid-cols-[1fr_320px]">
-                {/* flowchart */}
-                <div className="flex flex-col items-center">
-                  <div className="rounded-full bg-[#232C3D] px-10 py-2.5 text-sm font-black text-white">
-                    {t(lang, "开始", "시작", "Start")}
+                {/* flowchart: main flow + exceptions in their own right column (PR Desk) */}
+                <div className={excSteps.length ? "grid items-start gap-6 md:grid-cols-[1fr_220px]" : "flex flex-col items-center"}>
+                  <div className="flex flex-col items-center">
+                    <div className="rounded-full bg-[#232C3D] px-10 py-2.5 text-sm font-black text-white">
+                      {t(lang, "开始", "시작", "Start")}
+                    </div>
+                    {mainSteps.map(({ s, i }, j) => (
+                      <React.Fragment key={i}>
+                        <FlowArrow />
+                        <FlowStepNode lang={lang} s={s} i={i} num={String(j + 1).padStart(2, "0")} selected={i === stepIdx} item={item} onClick={() => setStepIdx(i)} />
+                      </React.Fragment>
+                    ))}
                   </div>
-                  {steps.map((s, i) => (
-                    <React.Fragment key={i}>
-                      <FlowArrow />
-                      <FlowStepNode lang={lang} s={s} i={i} selected={i === stepIdx} item={item} onClick={() => setStepIdx(i)} />
-                    </React.Fragment>
-                  ))}
+                  {excSteps.length > 0 && (
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4">
+                      <p className="text-center text-xs font-black text-amber-700">{t(lang, "例外情况", "예외", "Exceptions")}</p>
+                      <p className="mt-1 text-center text-[11px] leading-4 text-amber-600/80">
+                        {t(lang, "出问题时才走的分支，不占主流程编号。", "문제가 생겼을 때만 진행하는 분기로, 주 흐름 번호를 차지하지 않습니다.", "Branches taken only when something goes wrong — they don't take main-flow numbers.")}
+                      </p>
+                      <div className="mt-3 flex flex-col items-center">
+                        {excSteps.map(({ s, i }, j) => (
+                          <React.Fragment key={i}>
+                            {j > 0 && <FlowArrow />}
+                            <FlowStepNode lang={lang} s={s} i={i} num={t(lang, `例外 ${String(j + 1).padStart(2, "0")}`, `예외 ${String(j + 1).padStart(2, "0")}`, `Exception ${String(j + 1).padStart(2, "0")}`)} compact excColumn selected={i === stepIdx} item={item} onClick={() => setStepIdx(i)} />
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 {/* step description */}
                 <div className="border-l border-slate-100 pl-6">
-                  <p className="text-xs text-slate-400">
-                    {t(lang, "适用范围", "적용 범위", "Scope")} · {t(lang, item.scopeZh, item.scopeKo, item.scopeKo)}
+                  <p className="text-xs leading-5 text-slate-400">
+                    {t(lang, "适用范围", "적용 범위", "Scope")} · {renderLinkedText(t(lang, item.scopeZh, item.scopeKo, item.scopeKo), lang, allItems, onSwitchItem)}
                   </p>
                   <div className="mt-5 border-t border-slate-100 pt-4">
                     <p className="text-xs font-bold text-slate-400">{t(lang, "步骤说明", "단계 설명", "Step Description")}</p>
@@ -4126,7 +4336,7 @@ function PortalView({ lang, setLang, category, setCategory, query, setQuery, ite
 
             {/* briefing */}
             <div className="xl:sticky xl:top-5 xl:self-start">
-              <BriefingPanel lang={lang} item={selected} onOpenDetail={() => selected && onOpenDetail(selected)} onOpenSimulator={onOpenSimulator} />
+              <BriefingPanel lang={lang} item={selected} allItems={allItems} onOpenDetail={(it) => onOpenDetail(it || selected)} onOpenSimulator={onOpenSimulator} />
               <div className="mt-4 flex flex-wrap gap-1.5">
                 {hotTags.map((tag) => (
                   <button key={tag} onClick={() => setQuery(tag)} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-orange-200 hover:text-orange-600">
