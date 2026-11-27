@@ -1326,7 +1326,7 @@ function BriefingPanel({ lang, item, allItems, onOpenDetail, onOpenSimulator }) 
             {t(lang, "打开练习模拟器", "연습 시뮬레이터 열기", "Open Practice Simulator")}
           </button>
           <button
-            onClick={onOpenDetail}
+            onClick={() => onOpenDetail(item)}
             className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-600 transition hover:border-orange-200 hover:text-orange-600"
           >
             {t(lang, "查看详细流程", "절차 자세히 보기", "View Procedure")}
@@ -1335,7 +1335,7 @@ function BriefingPanel({ lang, item, allItems, onOpenDetail, onOpenSimulator }) 
       ) : (
         <>
           <button
-            onClick={onOpenDetail}
+            onClick={() => onOpenDetail(item)}
             className="mt-5 w-full rounded-xl px-4 py-3 text-sm font-black text-white shadow-sm transition hover:opacity-90"
             style={{ background: ORANGE }}
           >
@@ -1793,7 +1793,7 @@ function SopEditModal({ lang, item, isNew, allItems, hasOverride, onClose, onSav
               </div>
               <div>
                 <label className={labelCls}>{t(lang, "标题（韩文）", "제목", "Title (KO)")}</label>
-                <input value={draft.titleKo} onChange={(e) => set({ titleKo: e.target.value })} className={inputCls} placeholder="[SAP] 운반비 문서 삭제" />
+                <input value={draft.titleKo} onChange={(e) => set({ titleKo: e.target.value })} className={inputCls} placeholder={item?.titleKo || ""} />
               </div>
               <div>
                 <label className={labelCls}>{t(lang, "标题（中文）", "제목 (중국어)", "Title (ZH)")}</label>
@@ -1805,7 +1805,7 @@ function SopEditModal({ lang, item, isNew, allItems, hasOverride, onClose, onSav
                   value={draft.tags.join(", ")}
                   onChange={(e) => set({ tags: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
                   className={inputCls}
-                  placeholder="SAP, 운반비, 문서삭제, 오더취소"
+                  placeholder={(item?.tags || []).join(", ")}
                 />
               </div>
               <div>
@@ -4336,7 +4336,7 @@ function PortalView({ lang, setLang, category, setCategory, query, setQuery, ite
 
             {/* briefing */}
             <div className="xl:sticky xl:top-5 xl:self-start">
-              <BriefingPanel lang={lang} item={selected} allItems={allItems} onOpenDetail={(it) => onOpenDetail(it || selected)} onOpenSimulator={onOpenSimulator} />
+              <BriefingPanel lang={lang} item={selected} allItems={allItems} onOpenDetail={(it) => onOpenDetail(it && it.code ? it : selected)} onOpenSimulator={onOpenSimulator} />
               <div className="mt-4 flex flex-wrap gap-1.5">
                 {hotTags.map((tag) => (
                   <button key={tag} onClick={() => setQuery(tag)} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-orange-200 hover:text-orange-600">
@@ -4383,6 +4383,7 @@ export default function MiryangAutoOpsPortal() {
   const openSimulator = (item) => { setSimItem(item); setDetailItem(null); setView("simulator"); window.scrollTo(0, 0); };
 
   const toggleFav = (code) => {
+    if (!code || typeof code !== "string") return;
     setFavs((prev) => {
       const next = prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code];
       saveLs(FAV_KEY, next);
